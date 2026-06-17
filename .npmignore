@@ -1,0 +1,25 @@
+# Blacklist source directories and preview catalog assets
+src/
+public/
+dist-demo/
+components.json
+index.html
+
+# Blacklist bundler and linter configurations
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+eslint.config.js
+
+# Blacklist development and temporary files
+node_modules/
+package-lock.json
+.git/
+.gitignore
+.npmignore
+logs/
+*.log
+.DS_Store
