@@ -14,9 +14,9 @@ export default defineConfig(({ mode }) => {
         ? [
             dts({
               tsconfigPath: './tsconfig.app.json',
-              bundleTypes: false,
               insertTypesEntry: true,
-              include: ['src/components/**/*', 'src/lib/**/*', 'src/index.ts'],
+              include: ['src'],
+              exclude: ['src/main.tsx', 'src/App.tsx'],
             }),
           ]
         : []),
@@ -36,11 +36,22 @@ export default defineConfig(({ mode }) => {
           lib: {
             entry: path.resolve(__dirname, 'src/index.ts'),
             name: 'IncUI',
-            formats: ['es', 'umd'],
-            fileName: (format) => `inc-ui.${format}.js`,
+            formats: ['es', 'cjs'],
+            fileName: (format) => `inc-ui.${format === 'es' ? 'mjs' : 'cjs'}`,
           },
           rollupOptions: {
-            external: ['react', 'react-dom', 'tailwindcss'],
+            external: [
+              'react',
+              'react/jsx-runtime',
+              'react-dom',
+              'tailwindcss',
+              'clsx',
+              'tailwind-merge',
+              'class-variance-authority',
+              'lucide-react',
+              'tailwindcss-animate',
+              /^@radix-ui\//,
+            ],
             output: {
               globals: {
                 react: 'React',
