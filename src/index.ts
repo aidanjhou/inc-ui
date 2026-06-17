@@ -67,3 +67,8 @@ export {
 } from "./components/ui/toast"
 export { Toaster } from "./components/ui/toaster"
 export { useToast, toast } from "./hooks/use-toast"
+
+// Export UIConfig Context & Provider
+export { UIConfigContext, UIConfigProvider, useUIConfig } from "./context/UIConfigContext"
+export type { UIConfigContextType, UIConfigProviderProps } from "./context/UIConfigContext"
+
