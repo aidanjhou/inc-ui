@@ -22,7 +22,7 @@ export interface SelectProps {
   value?: string;
   defaultValue?: string;
   onChange?: (value: string, option: SelectOption) => void;
-  options: SelectOption[];
+  options?: SelectOption[];
   optionLabelKey?: string;
   optionValueKey?: string;
   placeholder?: string;
@@ -35,6 +35,15 @@ export interface SelectProps {
   translations?: Record<string, Partial<SelectTranslations>>;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  renderContent?: (context: {
+    value?: string;
+    onChange: (value: string, option?: SelectOption) => void;
+    close: () => void;
+    onOk?: () => void;
+  }) => React.ReactNode;
+  showConfirm?: boolean;
+  onOk?: (value: string) => void;
+  confirmRef?: React.RefObject<(() => void) | undefined>;
 }
 
 const defaultTranslations: Record<string, SelectTranslations> = {
@@ -86,7 +95,11 @@ export function Select(props: SelectProps) {
     showSearch = "auto",
     translations: customTranslations,
     open: controlledOpen,
-    onOpenChange
+    onOpenChange,
+    renderContent,
+    showConfirm,
+    onOk,
+    confirmRef
   } = props;
 
   const [internalOpen, setInternalOpen] = React.useState(false);
@@ -98,12 +111,29 @@ export function Select(props: SelectProps) {
   const isValueControlled = "value" in props;
   const value = isValueControlled ? controlledValue : internalValue;
 
-  const handleSelect = (option: SelectOption) => {
-    const stringValue = String(option[optionValueKey]);
+  const handleSelect = (optionOrValue: SelectOption | string, option?: SelectOption) => {
+    let stringValue: string;
+    let selectedOpt: SelectOption;
+    if (typeof optionOrValue === "object" && optionOrValue !== null) {
+      stringValue = String(optionOrValue[optionValueKey]);
+      selectedOpt = optionOrValue;
+    } else {
+      stringValue = String(optionOrValue);
+      selectedOpt = option || { [optionValueKey]: stringValue, [optionLabelKey]: stringValue };
+    }
     if (!isValueControlled) {
       setInternalValue(stringValue);
     }
-    onChange?.(stringValue, option);
+    onChange?.(stringValue, selectedOpt);
+  };
+
+  const handleConfirmClick = () => {
+    if (confirmRef?.current) {
+      confirmRef.current();
+    } else {
+      onOk?.(value || "");
+      handleOpenChange(false);
+    }
   };
 
   const mergedTranslations = React.useMemo(() => {
@@ -129,11 +159,11 @@ export function Select(props: SelectProps) {
   const activeVariant = variant || (platform === "mobile" ? "picker" : "dropdown");
 
   const selectedOption = React.useMemo(
-    () => options.find((o) => String(o[optionValueKey]) === value),
+    () => options?.find((o) => String(o[optionValueKey]) === value),
     [options, value, optionValueKey]
   );
 
-  const shouldShowSearch = showSearch === "always" || (showSearch === "auto" && options.length > 30);
+  const shouldShowSearch = !renderContent && (showSearch === "always" || (showSearch === "auto" && options && options.length > 30));
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [matchIndex, setMatchIndex] = React.useState(0);
@@ -161,7 +191,7 @@ export function Select(props: SelectProps) {
   }, [open, shouldShowSearch, platform]);
 
   const matches = React.useMemo(() => {
-    if (!searchQuery) return [];
+    if (!searchQuery || !options) return [];
     const query = searchQuery.toLowerCase();
     return options.filter((option) =>
       String(option[optionLabelKey]).toLowerCase().includes(query)
@@ -198,6 +228,7 @@ export function Select(props: SelectProps) {
     const val = e.target.value;
     setSearchQuery(val);
     setMatchIndex(0);
+    if (!options) return;
     const query = val.toLowerCase();
     const newMatches = options.filter((option) =>
       String(option[optionLabelKey]).toLowerCase().includes(query)
@@ -313,13 +344,15 @@ export function Select(props: SelectProps) {
             )}
           >
             <span>
-              {selectedOption ? String(selectedOption[optionLabelKey]) : resolvedPlaceholder}
+              {selectedOption ? String(selectedOption[optionLabelKey]) : (value || resolvedPlaceholder)}
             </span>
             <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
           </button>
         </DropdownMenuPrimitive.Trigger>
         <DropdownMenuPrimitive.Portal>
           <DropdownMenuPrimitive.Content
+            align="start"
+            side="bottom"
             onCloseAutoFocus={(event) => event.preventDefault()}
             onPointerDownOutside={(event) => {
               const target = event.target as Node | null;
@@ -339,7 +372,14 @@ export function Select(props: SelectProps) {
               ref={scrollContainerRef}
               className="flex-1 overflow-y-auto space-y-1"
             >
-              {options.length === 0 ? (
+              {renderContent ? (
+                renderContent({
+                  value,
+                  onChange: handleSelect,
+                  close: () => handleOpenChange(false),
+                  onOk: handleConfirmClick
+                })
+              ) : !options || options.length === 0 ? (
                 <div className="flex items-center justify-center py-6 text-xs text-muted-foreground select-none">
                   {t.noData}
                 </div>
@@ -392,7 +432,10 @@ export function Select(props: SelectProps) {
             {t.cancel}
           </DialogPrimitive.Close>
           <span className="text-sm font-semibold">{label || resolvedPlaceholder}</span>
-          <DialogPrimitive.Close className="text-sm font-semibold text-primary hover:text-primary/80">
+          <DialogPrimitive.Close 
+            className="text-sm font-semibold text-primary hover:text-primary/80"
+            onClick={handleConfirmClick}
+          >
             {t.done}
           </DialogPrimitive.Close>
         </div>
@@ -402,7 +445,14 @@ export function Select(props: SelectProps) {
           </div>
         )}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 pt-1 pb-4 space-y-1">
-          {options.length === 0 ? (
+          {renderContent ? (
+            renderContent({
+              value,
+              onChange: handleSelect,
+              close: () => handleOpenChange(false),
+              onOk: handleConfirmClick
+            })
+          ) : !options || options.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-sm text-muted-foreground select-none">
               {t.noData}
             </div>
@@ -455,7 +505,14 @@ export function Select(props: SelectProps) {
             </div>
           )}
           <div ref={scrollContainerRef} className="overflow-y-auto max-h-[50vh] divide-y divide-border">
-            {options.length === 0 ? (
+            {renderContent ? (
+              renderContent({
+                value,
+                onChange: handleSelect,
+                close: () => handleOpenChange(false),
+                onOk: handleConfirmClick
+              })
+            ) : !options || options.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-sm text-muted-foreground select-none bg-popover">
                 {t.noData}
               </div>
@@ -491,6 +548,14 @@ export function Select(props: SelectProps) {
             )}
           </div>
         </div>
+        {showConfirm && (
+          <button
+            onClick={handleConfirmClick}
+            className="w-full py-3.5 text-center text-sm font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg focus:outline-none"
+          >
+            {t.done}
+          </button>
+        )}
         <DialogPrimitive.Close asChild>
           <button className="w-full py-3.5 text-center text-sm font-semibold rounded-xl bg-popover text-popover-foreground border hover:bg-accent transition-colors shadow-lg focus:outline-none">
             {t.cancel}
@@ -524,7 +589,14 @@ export function Select(props: SelectProps) {
         )}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 pt-1 pb-6">
           <div className="space-y-1">
-            {options.length === 0 ? (
+            {renderContent ? (
+              renderContent({
+                value,
+                onChange: handleSelect,
+                close: () => handleOpenChange(false),
+                onOk: handleConfirmClick
+              })
+            ) : !options || options.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-sm text-muted-foreground select-none">
                 {t.noData}
               </div>
@@ -588,7 +660,14 @@ export function Select(props: SelectProps) {
         )}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 pt-1 pb-6">
           <div className="space-y-1">
-            {options.length === 0 ? (
+            {renderContent ? (
+              renderContent({
+                value,
+                onChange: handleSelect,
+                close: () => handleOpenChange(false),
+                onOk: handleConfirmClick
+              })
+            ) : !options || options.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-sm text-muted-foreground select-none">
                 {t.noData}
               </div>
@@ -644,7 +723,7 @@ export function Select(props: SelectProps) {
           )}
         >
           <span>
-            {selectedOption ? String(selectedOption[optionLabelKey]) : resolvedPlaceholder}
+            {selectedOption ? String(selectedOption[optionLabelKey]) : (value || resolvedPlaceholder)}
           </span>
           <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
         </button>

@@ -23,6 +23,7 @@ import {
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import { Select } from "./components/ui/select";
+import { DatetimeSelect } from "./components/ui/datetime-select";
 import { useUIConfig } from "./context/UIConfigContext";
 
 import {
@@ -74,6 +75,8 @@ function App() {
   const [selectValue, setSelectValue] = useState<string>("");
   const [selectManyValue, setSelectManyValue] = useState<string>("");
   const [selectJaValue, setSelectJaValue] = useState<string>("");
+  const [selectCustomValue, setSelectCustomValue] = useState<string>("");
+  const [datetimeValue, setDatetimeValue] = useState<string>("");
 
   // Button Playground States
   const [btnVariant, setBtnVariant] = useState<"primary" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "link">("primary");
@@ -314,11 +317,38 @@ export default function Demo() {
             cancel: "取消",
             done: "完了",
             placeholder: "選択してください...",
-            noData: "データなし",
+            noData: "データなし"
           }
         }}
         label="Custom Translations"
         onChange={(value) => console.log(value)}
+      />
+
+      {/* 6. Custom renderContent (Demonstrates custom content/grid/calendar) */}
+      <Select
+        placeholder="Custom color grid..."
+        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        label="Custom renderContent Grid"
+        value={selectCustomValue}
+        onChange={(value) => console.log(value)}
+        renderContent={({ value, onChange, close }) => {
+          const colors = ["red", "orange", "yellow", "green", "blue", "purple", "pink", "indigo", "teal"];
+          return (
+            <div className="p-3 grid grid-cols-3 gap-2">
+              {colors.map((c) => (
+                <button
+                  key={c}
+                  style={{ backgroundColor: c }}
+                  className={\`w-8 h-8 rounded-full border border-border \${value === c ? "ring-2 ring-primary" : ""}\`}
+                  onClick={() => {
+                    onChange(c);
+                    close();
+                  }}
+                />
+              ))}
+            </div>
+          );
+        }}
       />
     </div>
   )
@@ -838,6 +868,71 @@ export default function Demo() {
                       />
                       {selectJaValue && (
                         <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Japanese Option: <span className="text-primary font-bold">{selectJaValue}</span></p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Custom renderContent (Color Grid Demo)</label>
+                      <Select
+                        placeholder="Custom color grid..."
+                        variant={selectVariant || undefined}
+                        value={selectCustomValue}
+                        onChange={(value) => {
+                          setSelectCustomValue(value);
+                          toast({
+                            title: "Color Selected",
+                            description: `You selected: ${value}`
+                          });
+                        }}
+                        label="Custom Color Grid"
+                        renderContent={({ value: activeValue, onChange, close }) => {
+                          const colors = ["red", "orange", "yellow", "green", "blue", "purple", "pink", "indigo", "teal"];
+                          return (
+                            <div className="p-3 grid grid-cols-3 gap-2">
+                              {colors.map((c) => (
+                                <button
+                                  key={c}
+                                  style={{ backgroundColor: c }}
+                                  className={`w-8 h-8 rounded-full border border-border transition-all ${activeValue === c ? "ring-2 ring-primary scale-110" : "hover:scale-105"}`}
+                                  onClick={() => {
+                                    onChange(c);
+                                    close();
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          );
+                        }}
+                      />
+                      {selectCustomValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5 flex items-center gap-1.5">
+                          Selected Color:{" "}
+                          <span
+                            className="inline-block w-3 h-3 rounded-full border border-border"
+                            style={{ backgroundColor: selectCustomValue }}
+                          />{" "}
+                          <span className="text-primary font-bold">{selectCustomValue}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">DatetimeSelect (Pure Date & Time selector)</label>
+                      <DatetimeSelect
+                        placeholder="Select date and time..."
+                        variant={selectVariant || undefined}
+                        value={datetimeValue}
+                        onChange={(val) => {
+                          setDatetimeValue(val);
+                          toast({
+                            title: "Datetime Selected",
+                            description: `You selected: ${val}`
+                          });
+                        }}
+                        label="Datetime Picker"
+                      />
+                      {datetimeValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Datetime: <span className="text-primary font-bold">{datetimeValue}</span></p>
                       )}
                     </div>
                   </div>

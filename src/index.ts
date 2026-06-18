@@ -76,3 +76,7 @@ export type { UIConfigContextType, UIConfigProviderProps } from "./context/UICon
 export { Select } from "./components/ui/select";
 export type { SelectProps, SelectOption } from "./components/ui/select";
 
+// Export DatetimeSelect component
+export { DatetimeSelect } from "./components/ui/datetime-select";
+export type { DatetimeSelectProps } from "./components/ui/datetime-select";
+
