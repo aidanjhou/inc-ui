@@ -20,6 +20,8 @@ export default defineConfig([
     },
     rules: {
       "quotes": ["error", "double", { "avoidEscape": true }],
+      "comma-dangle": ["error", "never"],
+      "semi": ["error", "always"],
     },
   },
 ])

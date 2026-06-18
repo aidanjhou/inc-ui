@@ -1,4 +1,4 @@
-import { useState, useEffect, type SVGProps } from "react"
+import { useState, useEffect, type SVGProps } from "react";
 import {
   Sun,
   Moon,
@@ -15,19 +15,24 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  XCircle
-} from "lucide-react"
+  XCircle,
+  Laptop,
+  Smartphone
+} from "lucide-react";
 
-import { cn } from "./lib/utils"
-import { Button } from "./components/ui/button"
+import { cn } from "./lib/utils";
+import { Button } from "./components/ui/button";
+import { Select } from "./components/ui/select";
+import { useUIConfig } from "./context/UIConfigContext";
 
-import { Card,
+import {
+  Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
-} from "./components/ui/card"
+  CardFooter
+} from "./components/ui/card";
 import {
   Dialog,
   DialogTrigger,
@@ -36,9 +41,9 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
-} from "./components/ui/dialog"
-import { Input } from "./components/ui/input"
+  DialogClose
+} from "./components/ui/dialog";
+import { Input } from "./components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -47,57 +52,63 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuGroup,
-  DropdownMenuShortcut,
-} from "./components/ui/dropdown-menu"
-import { Toaster } from "./components/ui/toaster"
-import { useToast } from "./hooks/use-toast"
+  DropdownMenuShortcut
+} from "./components/ui/dropdown-menu";
+import { Toaster } from "./components/ui/toaster";
+import { useToast } from "./hooks/use-toast";
 
 const GithubIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
   </svg>
-)
+);
 
 function App() {
-  const { toast } = useToast()
-  const [theme, setTheme] = useState<"light" | "dark">("dark")
-  const [activeTab, setActiveTab] = useState<"preview" | "code">("preview")
-  const [copiedText, setCopiedText] = useState<string | null>(null)
+  const { toast } = useToast();
+  const { theme, setTheme, platform, setPlatform, language, setLanguage } = useUIConfig();
+  const [activeTab, setActiveTab] = useState<"preview" | "code">("preview");
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  // Select Playground States
+  const [selectVariant, setSelectVariant] = useState<"dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal" | null>(null);
+  const [selectValue, setSelectValue] = useState<string>("");
+  const [selectManyValue, setSelectManyValue] = useState<string>("");
+  const [selectJaValue, setSelectJaValue] = useState<string>("");
 
   // Button Playground States
-  const [btnVariant, setBtnVariant] = useState<"primary" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "link">("primary")
-  const [btnSize, setBtnSize] = useState<"default" | "xs" | "sm" | "lg" | "icon">("default")
-  const [btnLoading, setBtnLoading] = useState(false)
-  const [btnDisabled, setBtnDisabled] = useState(false)
-  const [btnIcon, setBtnIcon] = useState(false)
+  const [btnVariant, setBtnVariant] = useState<"primary" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "link">("primary");
+  const [btnSize, setBtnSize] = useState<"default" | "xs" | "sm" | "lg" | "icon">("default");
+  const [btnLoading, setBtnLoading] = useState(false);
+  const [btnDisabled, setBtnDisabled] = useState(false);
+  const [btnIcon, setBtnIcon] = useState(false);
 
   // Card Playground States
-  const [cardGlass, setCardGlass] = useState(true)
-  const [cardHoverable, setCardHoverable] = useState(true)
+  const [cardGlass, setCardGlass] = useState(true);
+  const [cardHoverable, setCardHoverable] = useState(true);
 
   // Input Playground States
-  const [inputDisabled, setInputDisabled] = useState(false)
-  const [inputError, setInputError] = useState(false)
-  const [inputValue, setInputValue] = useState("")
+  const [inputDisabled, setInputDisabled] = useState(false);
+  const [inputError, setInputError] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
-    const root = window.document.documentElement
+    const root = window.document.documentElement;
     if (theme === "dark") {
-      root.classList.add("dark")
+      root.classList.add("dark");
     } else {
-      root.classList.remove("dark")
+      root.classList.remove("dark");
     }
-  }, [theme])
+  }, [theme]);
 
   const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text)
-    setCopiedText(id)
-    setTimeout(() => setCopiedText(null), 2000)
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2000);
     toast({
       title: "Code copied",
-      description: "Component source code copied to clipboard.",
-    })
-  }
+      description: "Component source code copied to clipboard."
+    });
+  };
 
   // Component Code Strings
   const buttonCode = `import { Button } from 'inc-ui'
@@ -112,7 +123,7 @@ export default function Demo() {
       ${btnIcon ? '<Sparkles className="mr-2 h-4 w-4" /> ' : ""}Click Me
     </Button>
   )
-}`
+}`;
 
   const cardCode = `import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Button } from 'inc-ui'
 
@@ -132,7 +143,7 @@ export default function Demo() {
       </CardFooter>
     </Card>
   )
-}`
+}`;
 
   const dialogCode = `import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, Button } from 'inc-ui'
 
@@ -160,7 +171,7 @@ export default function Demo() {
       </DialogContent>
     </Dialog>
   )
-}`
+}`;
 
   const dropdownCode = `import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup, DropdownMenuShortcut, Button } from 'inc-ui'
 import { User, Settings, LogOut } from 'lucide-react'
@@ -192,7 +203,7 @@ export default function Demo() {
       </DropdownMenuContent>
     </DropdownMenu>
   )
-}`
+}`;
 
   const toastCode = `import { Button, useToast } from 'inc-ui'
 
@@ -212,7 +223,106 @@ export default function Demo() {
       Show Success Toast
     </Button>
   )
-}`
+}`;
+
+  const selectOptions = [
+    { label: "Option 1: React.js", value: "react", other: "Popular" },
+    { label: "Option 2: Vue.js", value: 2, other: "Progressive" },
+    { label: "Option 3: Svelte", value: "svelte", other: "Compiler" },
+    { label: "Option 4: Next.js", value: 4, other: "Meta-framework" },
+    { label: "Option 5: SolidJS", value: "solid", other: "Reactive" }
+  ];
+
+  const manyOptions = Array.from({ length: 101 }, (_, i) => ({
+    label: `Option ${i + 1}`,
+    value: `val-${i + 1}`
+  }));
+
+  const selectCode = `import { Select } from "inc-ui"
+
+export default function Demo() {
+  const frameworks = [
+    { label: "Option 1: React.js", value: "react", other: "Popular" },
+    { label: "Option 2: Vue.js", value: 2, other: "Progressive" },
+    { label: "Option 3: Svelte", value: "svelte", other: "Compiler" },
+  ]
+
+  const languages = [
+    { name: "JavaScript", id: "js" },
+    { name: "TypeScript", id: "ts" },
+    { name: "Rust", id: "rs" },
+  ]
+
+  const largeOptions = Array.from({ length: 101 }, (_, i) => ({
+    label: \`Option \${i + 1}\`,
+    value: \`val-\${i + 1}\`,
+  }))
+
+  const fruits = [
+    { label: "リンゴ (Apple)", value: "apple" },
+    { label: "バナナ (Banana)", value: "banana" },
+    { label: "オレンジ (Orange)", value: "orange" },
+  ]
+
+  return (
+    <div className="space-y-4">
+      {/* 1. Choose framework (Default Keys: label/value) */}
+      <Select
+        options={frameworks}
+        placeholder="Select framework..."
+        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        label="Choose Framework"
+        onChange={(value, option) => console.log(value, option)}
+      />
+
+      {/* 2. Choose language (Custom Keys: name/id) */}
+      <Select
+        options={languages}
+        optionLabelKey="name"
+        optionValueKey="id"
+        placeholder="Select language..."
+        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        label="Choose Language"
+        onChange={(value) => console.log(value)}
+      />
+
+      {/* 3. Large options list (101 items, automatically triggers search) */}
+      <Select
+        options={largeOptions}
+        placeholder="Select an option (101 items)..."
+        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        label="Choose from 101 Options"
+        onChange={(value) => console.log(value)}
+      />
+
+      {/* 4. Empty options list (0 items, showing empty state) */}
+      <Select
+        options={[]}
+        placeholder="Select an option (0 items)..."
+        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        label="Empty Options"
+        onChange={(value) => console.log(value)}
+      />
+
+      {/* 5. Custom Translations (Demonstrates external Japanese completion) */}
+      <Select
+        options={fruits}
+        placeholder="Please choose..."
+        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        translations={{
+          ja: {
+            cancel: "取消",
+            done: "完了",
+            placeholder: "選択してください...",
+            noData: "データなし",
+          }
+        }}
+        label="Custom Translations"
+        onChange={(value) => console.log(value)}
+      />
+    </div>
+  )
+}`;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300 select-none">
@@ -242,12 +352,22 @@ export default function Demo() {
             <a href="#buttons" className="hover:text-foreground">Buttons</a>
             <a href="#cards" className="hover:text-foreground">Cards</a>
             <a href="#inputs" className="hover:text-foreground">Inputs</a>
+            <a href="#selects" className="hover:text-foreground">Selects</a>
             <a href="#modals" className="hover:text-foreground">Modals</a>
             <a href="#dropdowns" className="hover:text-foreground">Menus</a>
             <a href="#toasts" className="hover:text-foreground">Notifications</a>
           </nav>
 
           <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPlatform(platform === "desktop" ? "mobile" : "desktop")}
+              className="rounded-full hover:bg-muted"
+              title={`Switch platform (currently: ${platform})`}
+            >
+              {platform === "desktop" ? <Laptop className="h-5 w-5 text-indigo-500" /> : <Smartphone className="h-5 w-5 text-indigo-500" />}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -272,7 +392,7 @@ export default function Demo() {
 
       {/* Main Content Area */}
       <main className="flex-1 container max-w-7xl px-4 sm:px-8 py-12 flex flex-col space-y-20">
-        
+
         {/* Hero Section */}
         <section id="overview" className="flex flex-col items-center text-center space-y-6 pt-8 pb-12">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
@@ -353,7 +473,7 @@ export default function Demo() {
             {/* Controls Panel */}
             <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
               <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Variant</label>
@@ -489,7 +609,7 @@ export default function Demo() {
             {/* Controls */}
             <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
               <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
-              
+
               <div className="space-y-4">
                 <label className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer">
                   <div className="space-y-0.5">
@@ -558,7 +678,7 @@ export default function Demo() {
             {/* Controls */}
             <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
               <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
-              
+
               <div className="space-y-4">
                 <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
                   <input
@@ -579,6 +699,240 @@ export default function Demo() {
                   />
                   <span>Validation Error Border</span>
                 </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 3.5. SELECT SECTION */}
+        <section id="selects" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">Select</h2>
+            <p className="text-muted-foreground">Premium select dropdown component supporting 5 responsive variants.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Preview */}
+            <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-between relative min-h-[300px]">
+              <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md z-10">
+                <Button size="sm" variant={activeTab === "preview" ? "secondary" : "ghost"} onClick={() => setActiveTab("preview")}>
+                  <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+                </Button>
+                <Button size="sm" variant={activeTab === "code" ? "secondary" : "ghost"} onClick={() => setActiveTab("code")}>
+                  <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+                </Button>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center min-h-[200px] w-full">
+                {activeTab === "preview" ? (
+                  <div className="w-full max-w-xs space-y-4">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Choose framework (Default Keys: label/value)</label>
+                      <Select
+                        options={selectOptions}
+                        placeholder="Select framework..."
+                        variant={selectVariant || undefined}
+                        value={selectValue}
+                        onChange={(value, option) => {
+                          setSelectValue(value);
+                          toast({
+                            title: "Option Selected",
+                            description: `Value: "${value}" (type: ${typeof option.value}), Extra: "${option.other || "none"}"`
+                          });
+                        }}
+                        label="Choose Framework"
+                      />
+                      {selectValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Value: <span className="text-primary font-bold">{selectValue}</span></p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Choose language (Custom Keys: name/id)</label>
+                      <Select
+                        options={[
+                          { name: "JavaScript", id: "js" },
+                          { name: "TypeScript", id: "ts" },
+                          { name: "Rust", id: "rs" }
+                        ]}
+                        optionLabelKey="name"
+                        optionValueKey="id"
+                        placeholder="Select language..."
+                        variant={selectVariant || undefined}
+                        onChange={(value, option) => {
+                          toast({
+                            title: "Language Selected",
+                            description: `Value: "${value}" (Custom id), Name: "${option.name}"`
+                          });
+                        }}
+                        label="Choose Language"
+                      />
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Large options list (101 items)</label>
+                      <Select
+                        options={manyOptions}
+                        placeholder="Select an option (101 items)..."
+                        variant={selectVariant || undefined}
+                        value={selectManyValue}
+                        onChange={(value, option) => {
+                          setSelectManyValue(value);
+                          toast({
+                            title: "Large List Option Selected",
+                            description: `Selected: ${option.label} (Value: ${value})`
+                          });
+                        }}
+                        label="Choose from 101 Options"
+                      />
+                      {selectManyValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Option: <span className="text-primary font-bold">{selectManyValue}</span></p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Empty options list (0 items)</label>
+                      <Select
+                        options={[]}
+                        placeholder="Select an option (0 items)..."
+                        variant={selectVariant || undefined}
+                        onChange={(value) => {
+                          toast({
+                            title: "Empty Option Selected",
+                            description: `Value: "${value}"`
+                          });
+                        }}
+                        label="Empty Options"
+                      />
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Custom Translations (Demonstrates external Japanese completion)</label>
+                      <Select
+                        options={[
+                          { label: "リンゴ (Apple)", value: "apple" },
+                          { label: "バナナ (Banana)", value: "banana" },
+                          { label: "オレンジ (Orange)", value: "orange" }
+                        ]}
+                        placeholder="Please choose..."
+                        variant={selectVariant || undefined}
+                        value={selectJaValue}
+                        onChange={(value, option) => {
+                          setSelectJaValue(value);
+                          toast({
+                            title: "Japanese Option Selected",
+                            description: `Selected: ${option.label} (Value: ${value})`
+                          });
+                        }}
+                        translations={{
+                          ja: {
+                            cancel: "取消",
+                            done: "完了",
+                            placeholder: "選択してください...",
+                            noData: "データなし"
+                          }
+                        }}
+                        label="Custom Translations"
+                      />
+                      {selectJaValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Japanese Option: <span className="text-primary font-bold">{selectJaValue}</span></p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full relative">
+                    <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+                      <code>{selectCode}</code>
+                    </pre>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                      onClick={() => copyToClipboard(selectCode, "select")}
+                    >
+                      {copiedText === "select" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+              <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Variant</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant={selectVariant === null ? "primary" : "outline"}
+                      onClick={() => setSelectVariant(null)}
+                      className="text-xs w-full"
+                    >
+                      Default ({platform === "mobile" ? "picker" : "dropdown"})
+                    </Button>
+                    {(["dropdown", "picker", "action-sheet", "bottom-modal", "center-modal"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        size="sm"
+                        variant={selectVariant === v ? "primary" : "outline"}
+                        onClick={() => setSelectVariant(v)}
+                        className="text-xs w-full"
+                      >
+                        {v}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Active Platform</label>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={platform === "desktop" ? "primary" : "outline"}
+                      onClick={() => setPlatform("desktop")}
+                      className="flex-1 text-xs"
+                    >
+                      <Laptop className="h-3.5 w-3.5 mr-1" /> Desktop
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={platform === "mobile" ? "primary" : "outline"}
+                      onClick={() => setPlatform("mobile")}
+                      className="flex-1 text-xs"
+                    >
+                      <Smartphone className="h-3.5 w-3.5 mr-1" /> Mobile
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-normal mt-1">
+                    Changing the platform changes the default Select behavior (desktop defaults to <strong>dropdown</strong>, mobile defaults to <strong>picker</strong>).
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Active Language</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["en-US", "zh-CN", "zh-TW", "ja-JP"] as const).map((lang) => (
+                      <Button
+                        key={lang}
+                        size="sm"
+                        variant={language === lang ? "primary" : "outline"}
+                        onClick={() => setLanguage(lang)}
+                        className="text-xs w-full"
+                      >
+                        {lang}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-normal mt-1">
+                    Changing the active language updates the placeholders, button actions, and empty states inside the Select components dynamically.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -640,8 +994,8 @@ export default function Demo() {
                           <Button type="submit" onClick={() => {
                             toast({
                               title: "Profile Updated",
-                              description: "Account credentials changed successfully.",
-                            })
+                              description: "Account credentials changed successfully."
+                            });
                           }}>Save changes</Button>
                         </DialogClose>
                       </DialogFooter>
@@ -713,14 +1067,14 @@ export default function Demo() {
                       <DropdownMenuSeparator />
                       <DropdownMenuGroup>
                         <DropdownMenuItem onClick={() => {
-                          toast({ title: "Profile clicked", description: "Redirecting to your user page." })
+                          toast({ title: "Profile clicked", description: "Redirecting to your user page." });
                         }}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Profile</span>
                           <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
-                          toast({ title: "Settings clicked", description: "Loading developer config panel." })
+                          toast({ title: "Settings clicked", description: "Loading developer config panel." });
                         }}>
                           <Settings className="mr-2 h-4 w-4" />
                           <span>Settings</span>
@@ -729,7 +1083,7 @@ export default function Demo() {
                       </DropdownMenuGroup>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => {
-                        toast({ title: "Logged out", description: "Session terminated successfully." })
+                        toast({ title: "Logged out", description: "Session terminated successfully." });
                       }}>
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
@@ -801,8 +1155,8 @@ export default function Demo() {
                         toast({
                           variant: "success",
                           title: "Successful Build",
-                          description: "The React package was compiled without warnings.",
-                        })
+                          description: "The React package was compiled without warnings."
+                        });
                       }}
                       className="border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-500"
                     >
@@ -815,8 +1169,8 @@ export default function Demo() {
                         toast({
                           variant: "warning",
                           title: "Low Disk Space",
-                          description: "Repository storage reaches 89% full.",
-                        })
+                          description: "Repository storage reaches 89% full."
+                        });
                       }}
                       className="border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-500"
                     >
@@ -829,8 +1183,8 @@ export default function Demo() {
                         toast({
                           variant: "destructive",
                           title: "Compilation Error",
-                          description: "Import symbol not found on compile.",
-                        })
+                          description: "Import symbol not found on compile."
+                        });
                       }}
                       className="border-red-500/30 hover:bg-red-500/10 hover:text-red-500"
                     >
@@ -843,8 +1197,8 @@ export default function Demo() {
                         toast({
                           variant: "info",
                           title: "System Update",
-                          description: "A new version of inc-ui packages is available.",
-                        })
+                          description: "A new version of inc-ui packages is available."
+                        });
                       }}
                       className="border-blue-500/30 hover:bg-blue-500/10 hover:text-blue-500"
                     >
@@ -900,7 +1254,7 @@ export default function Demo() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

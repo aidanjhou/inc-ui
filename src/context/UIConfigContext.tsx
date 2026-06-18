@@ -29,7 +29,7 @@ export function UIConfigProvider({
   language: initialLanguage = "en-US",
   timezone: initialTimezone = "UTC",
   platform: initialPlatform = "desktop",
-  theme: initialTheme = "light",
+  theme: initialTheme = "light"
 }: UIConfigProviderProps) {
   const [language, setLanguage] = useState(initialLanguage);
   const [timezone, setTimezone] = useState(initialTimezone);
@@ -97,7 +97,7 @@ export function UIConfigProvider({
         setLanguage,
         setTimezone,
         setPlatform,
-        setTheme,
+        setTheme
       }}
     >
       {children}

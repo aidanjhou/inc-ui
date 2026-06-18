@@ -1,16 +1,16 @@
-import { useToast } from "../../hooks/use-toast"
+import { useToast } from "../../hooks/use-toast";
 import {
   Toast,
   ToastClose,
   ToastDescription,
   ToastProvider,
   ToastTitle,
-  ToastViewport,
-} from "./toast"
-import { CheckCircle, AlertTriangle, XCircle, Info } from "lucide-react"
+  ToastViewport
+} from "./toast";
+import { CheckCircle, AlertTriangle, XCircle, Info } from "lucide-react";
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts } = useToast();
 
   return (
     <ToastProvider>
@@ -40,9 +40,9 @@ export function Toaster() {
             {action}
             <ToastClose />
           </Toast>
-        )
+        );
       })}
       <ToastViewport />
     </ToastProvider>
-  )
+  );
 }
