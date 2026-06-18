@@ -1,4 +1,4 @@
-import { useState, useEffect, type SVGProps } from 'react'
+import { useState, useEffect, type SVGProps } from "react"
 import {
   Sun,
   Moon,
@@ -16,10 +16,10 @@ import {
   AlertTriangle,
   Info,
   XCircle
-} from 'lucide-react'
+} from "lucide-react"
 
-import { cn } from './lib/utils'
-import { Button } from './components/ui/button'
+import { cn } from "./lib/utils"
+import { Button } from "./components/ui/button"
 
 import { Card,
   CardHeader,
@@ -27,7 +27,7 @@ import { Card,
   CardDescription,
   CardContent,
   CardFooter,
-} from './components/ui/card'
+} from "./components/ui/card"
 import {
   Dialog,
   DialogTrigger,
@@ -37,8 +37,8 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from './components/ui/dialog'
-import { Input } from './components/ui/input'
+} from "./components/ui/dialog"
+import { Input } from "./components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -48,9 +48,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuGroup,
   DropdownMenuShortcut,
-} from './components/ui/dropdown-menu'
-import { Toaster } from './components/ui/toaster'
-import { useToast } from './hooks/use-toast'
+} from "./components/ui/dropdown-menu"
+import { Toaster } from "./components/ui/toaster"
+import { useToast } from "./hooks/use-toast"
 
 const GithubIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -60,13 +60,13 @@ const GithubIcon = (props: SVGProps<SVGSVGElement>) => (
 
 function App() {
   const { toast } = useToast()
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
-  const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview')
+  const [theme, setTheme] = useState<"light" | "dark">("dark")
+  const [activeTab, setActiveTab] = useState<"preview" | "code">("preview")
   const [copiedText, setCopiedText] = useState<string | null>(null)
 
   // Button Playground States
-  const [btnVariant, setBtnVariant] = useState<'primary' | 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'>('primary')
-  const [btnSize, setBtnSize] = useState<'default' | 'xs' | 'sm' | 'lg' | 'icon'>('default')
+  const [btnVariant, setBtnVariant] = useState<"primary" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "link">("primary")
+  const [btnSize, setBtnSize] = useState<"default" | "xs" | "sm" | "lg" | "icon">("default")
   const [btnLoading, setBtnLoading] = useState(false)
   const [btnDisabled, setBtnDisabled] = useState(false)
   const [btnIcon, setBtnIcon] = useState(false)
@@ -78,14 +78,14 @@ function App() {
   // Input Playground States
   const [inputDisabled, setInputDisabled] = useState(false)
   const [inputError, setInputError] = useState(false)
-  const [inputValue, setInputValue] = useState('')
+  const [inputValue, setInputValue] = useState("")
 
   useEffect(() => {
     const root = window.document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
+    if (theme === "dark") {
+      root.classList.add("dark")
     } else {
-      root.classList.remove('dark')
+      root.classList.remove("dark")
     }
   }, [theme])
 
@@ -107,9 +107,9 @@ export default function Demo() {
   return (
     <Button 
       variant="${btnVariant}" 
-      size="${btnSize}"${btnLoading ? ' loading' : ''}${btnDisabled ? ' disabled' : ''}
+      size="${btnSize}"${btnLoading ? " loading" : ""}${btnDisabled ? " disabled" : ""}
     >
-      ${btnIcon ? '<Sparkles className="mr-2 h-4 w-4" /> ' : ''}Click Me
+      ${btnIcon ? '<Sparkles className="mr-2 h-4 w-4" /> ' : ""}Click Me
     </Button>
   )
 }`
@@ -118,7 +118,7 @@ export default function Demo() {
 
 export default function Demo() {
   return (
-    <Card ${cardGlass ? 'glass' : ''} ${cardHoverable ? 'hoverable' : ''}>
+    <Card ${cardGlass ? "glass" : ""} ${cardHoverable ? "hoverable" : ""}>
       <CardHeader>
         <CardTitle>Analytics Overview</CardTitle>
         <CardDescription>Monthly growth and active metrics</CardDescription>
@@ -251,10 +251,10 @@ export default function Demo() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="rounded-full hover:bg-muted"
             >
-              {theme === 'dark' ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-800" />}
+              {theme === "dark" ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-800" />}
             </Button>
             <Button
               variant="outline"
@@ -288,7 +288,7 @@ export default function Demo() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
             <Button size="lg" className="w-full sm:w-auto glow-primary" onClick={(e) => {
               e.preventDefault();
-              document.getElementById('buttons')?.scrollIntoView({ behavior: 'smooth' });
+              document.getElementById("buttons")?.scrollIntoView({ behavior: "smooth" });
             }}>
               Explore Components
             </Button>
@@ -313,16 +313,16 @@ export default function Demo() {
             {/* Component Interactive Preview */}
             <div className="lg:col-span-7 flex flex-col justify-between border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner relative overflow-hidden">
               <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
-                <Button size="sm" variant={activeTab === 'preview' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('preview')}>
+                <Button size="sm" variant={activeTab === "preview" ? "secondary" : "ghost"} onClick={() => setActiveTab("preview")}>
                   <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
                 </Button>
-                <Button size="sm" variant={activeTab === 'code' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('code')}>
+                <Button size="sm" variant={activeTab === "code" ? "secondary" : "ghost"} onClick={() => setActiveTab("code")}>
                   <Code className="mr-1.5 h-3.5 w-3.5" /> Code
                 </Button>
               </div>
 
               <div className="flex-1 flex items-center justify-center min-h-[200px]">
-                {activeTab === 'preview' ? (
+                {activeTab === "preview" ? (
                   <Button
                     variant={btnVariant}
                     size={btnSize}
@@ -341,9 +341,9 @@ export default function Demo() {
                       size="icon"
                       variant="ghost"
                       className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-                      onClick={() => copyToClipboard(buttonCode, 'btn')}
+                      onClick={() => copyToClipboard(buttonCode, "btn")}
                     >
-                      {copiedText === 'btn' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                      {copiedText === "btn" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
                 )}
@@ -358,11 +358,11 @@ export default function Demo() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Variant</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {['primary', 'default', 'destructive', 'outline', 'secondary', 'ghost', 'link'].map((v) => (
+                    {["primary", "default", "destructive", "outline", "secondary", "ghost", "link"].map((v) => (
                       <Button
                         key={v}
                         size="sm"
-                        variant={btnVariant === v ? 'primary' : 'outline'}
+                        variant={btnVariant === v ? "primary" : "outline"}
                         onClick={() => setBtnVariant(v as any)}
                         className="text-xs"
                       >
@@ -375,11 +375,11 @@ export default function Demo() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size</label>
                   <div className="grid grid-cols-5 gap-2">
-                    {['default', 'xs', 'sm', 'lg', 'icon'].map((s) => (
+                    {["default", "xs", "sm", "lg", "icon"].map((s) => (
                       <Button
                         key={s}
                         size="sm"
-                        variant={btnSize === s ? 'primary' : 'outline'}
+                        variant={btnSize === s ? "primary" : "outline"}
                         onClick={() => setBtnSize(s as any)}
                         className="text-xs"
                       >
@@ -439,15 +439,15 @@ export default function Demo() {
             {/* Preview */}
             <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[350px]">
               <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
-                <Button size="sm" variant={activeTab === 'preview' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('preview')}>
+                <Button size="sm" variant={activeTab === "preview" ? "secondary" : "ghost"} onClick={() => setActiveTab("preview")}>
                   <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
                 </Button>
-                <Button size="sm" variant={activeTab === 'code' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('code')}>
+                <Button size="sm" variant={activeTab === "code" ? "secondary" : "ghost"} onClick={() => setActiveTab("code")}>
                   <Code className="mr-1.5 h-3.5 w-3.5" /> Code
                 </Button>
               </div>
 
-              {activeTab === 'preview' ? (
+              {activeTab === "preview" ? (
                 <Card glass={cardGlass} hoverable={cardHoverable} className="w-full max-w-md shadow-2xl transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -478,9 +478,9 @@ export default function Demo() {
                     size="icon"
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-                    onClick={() => copyToClipboard(cardCode, 'card')}
+                    onClick={() => copyToClipboard(cardCode, "card")}
                   >
-                    {copiedText === 'card' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    {copiedText === "card" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               )}
@@ -597,15 +597,15 @@ export default function Demo() {
             {/* Preview */}
             <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[250px]">
               <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
-                <Button size="sm" variant={activeTab === 'preview' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('preview')}>
+                <Button size="sm" variant={activeTab === "preview" ? "secondary" : "ghost"} onClick={() => setActiveTab("preview")}>
                   <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
                 </Button>
-                <Button size="sm" variant={activeTab === 'code' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('code')}>
+                <Button size="sm" variant={activeTab === "code" ? "secondary" : "ghost"} onClick={() => setActiveTab("code")}>
                   <Code className="mr-1.5 h-3.5 w-3.5" /> Code
                 </Button>
               </div>
 
-              {activeTab === 'preview' ? (
+              {activeTab === "preview" ? (
                 <div className="flex flex-col items-center space-y-4">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -658,9 +658,9 @@ export default function Demo() {
                     size="icon"
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-                    onClick={() => copyToClipboard(dialogCode, 'dialog')}
+                    onClick={() => copyToClipboard(dialogCode, "dialog")}
                   >
-                    {copiedText === 'dialog' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    {copiedText === "dialog" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               )}
@@ -694,15 +694,15 @@ export default function Demo() {
             {/* Preview */}
             <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[250px]">
               <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
-                <Button size="sm" variant={activeTab === 'preview' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('preview')}>
+                <Button size="sm" variant={activeTab === "preview" ? "secondary" : "ghost"} onClick={() => setActiveTab("preview")}>
                   <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
                 </Button>
-                <Button size="sm" variant={activeTab === 'code' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('code')}>
+                <Button size="sm" variant={activeTab === "code" ? "secondary" : "ghost"} onClick={() => setActiveTab("code")}>
                   <Code className="mr-1.5 h-3.5 w-3.5" /> Code
                 </Button>
               </div>
 
-              {activeTab === 'preview' ? (
+              {activeTab === "preview" ? (
                 <div className="flex flex-col items-center space-y-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -748,9 +748,9 @@ export default function Demo() {
                     size="icon"
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-                    onClick={() => copyToClipboard(dropdownCode, 'dropdown')}
+                    onClick={() => copyToClipboard(dropdownCode, "dropdown")}
                   >
-                    {copiedText === 'dropdown' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    {copiedText === "dropdown" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               )}
@@ -784,15 +784,15 @@ export default function Demo() {
             {/* Preview */}
             <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[250px]">
               <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
-                <Button size="sm" variant={activeTab === 'preview' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('preview')}>
+                <Button size="sm" variant={activeTab === "preview" ? "secondary" : "ghost"} onClick={() => setActiveTab("preview")}>
                   <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
                 </Button>
-                <Button size="sm" variant={activeTab === 'code' ? 'secondary' : 'ghost'} onClick={() => setActiveTab('code')}>
+                <Button size="sm" variant={activeTab === "code" ? "secondary" : "ghost"} onClick={() => setActiveTab("code")}>
                   <Code className="mr-1.5 h-3.5 w-3.5" /> Code
                 </Button>
               </div>
 
-              {activeTab === 'preview' ? (
+              {activeTab === "preview" ? (
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center justify-center gap-3">
                     <Button
@@ -862,9 +862,9 @@ export default function Demo() {
                     size="icon"
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-                    onClick={() => copyToClipboard(toastCode, 'toast')}
+                    onClick={() => copyToClipboard(toastCode, "toast")}
                   >
-                    {copiedText === 'toast' ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    {copiedText === "toast" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               )}

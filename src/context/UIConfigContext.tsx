@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 
 export interface UIConfigContextType {
   language: string;
   timezone: string;
   platform: string;
-  theme: 'light' | 'dark';
+  theme: string;
   setLanguage: (lang: string) => void;
   setTimezone: (tz: string) => void;
   setPlatform: (platform: string) => void;
-  setTheme: (theme: 'light' | 'dark') => void;
+  setTheme: (theme: string) => void;
 }
 
 export const UIConfigContext = createContext<UIConfigContextType | null>(null);
@@ -21,20 +21,42 @@ export interface UIConfigProviderProps {
   language?: string;
   timezone?: string;
   platform?: string;
-  theme?: 'light' | 'dark';
+  theme?: string;
 }
 
 export function UIConfigProvider({
   children,
-  language: initialLanguage = 'en-US',
-  timezone: initialTimezone = 'UTC',
-  platform: initialPlatform = 'desktop',
-  theme: initialTheme = 'light',
+  language: initialLanguage = "en-US",
+  timezone: initialTimezone = "UTC",
+  platform: initialPlatform = "desktop",
+  theme: initialTheme = "light",
 }: UIConfigProviderProps) {
   const [language, setLanguage] = useState(initialLanguage);
   const [timezone, setTimezone] = useState(initialTimezone);
-  const [platform, setPlatform] = useState(initialPlatform);
-  const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme);
+  const [platform, setPlatformState] = useState<string>(() => {
+    if (initialPlatform === "desktop" || initialPlatform === "mobile") {
+      return initialPlatform;
+    }
+    return "desktop";
+  });
+  const [theme, setThemeState] = useState<string>(() => {
+    if (initialTheme === "light" || initialTheme === "dark") {
+      return initialTheme;
+    }
+    return "light";
+  });
+
+  const setPlatform = (newPlatform: string) => {
+    if (newPlatform === "desktop" || newPlatform === "mobile") {
+      setPlatformState(newPlatform);
+    }
+  };
+
+  const setTheme = (newTheme: string) => {
+    if (newTheme === "light" || newTheme === "dark") {
+      setThemeState(newTheme);
+    }
+  };
 
   // Sync state with props when they are updated from parent/server components
   useEffect(() => {
@@ -51,13 +73,17 @@ export function UIConfigProvider({
 
   useEffect(() => {
     if (initialPlatform) {
-      setPlatform(initialPlatform);
+      if (initialPlatform === "desktop" || initialPlatform === "mobile") {
+        setPlatformState(initialPlatform);
+      }
     }
   }, [initialPlatform]);
 
   useEffect(() => {
     if (initialTheme) {
-      setTheme(initialTheme);
+      if (initialTheme === "light" || initialTheme === "dark") {
+        setThemeState(initialTheme);
+      }
     }
   }, [initialTheme]);
 
@@ -82,7 +108,7 @@ export function UIConfigProvider({
 export function useUIConfig() {
   const context = useContext(UIConfigContext);
   if (!context) {
-    throw new Error('useUIConfig must be used within a UIConfigProvider');
+    throw new Error("useUIConfig must be used within a UIConfigProvider");
   }
   return context;
 }
