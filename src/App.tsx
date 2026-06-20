@@ -72,6 +72,7 @@ function App() {
 
   // Select Playground States
   const [selectVariant, setSelectVariant] = useState<"dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal" | null>(null);
+  const [selectAlign, setSelectAlign] = useState<"auto" | "start" | "end">("auto");
   const [selectValue, setSelectValue] = useState<string>("");
   const [selectManyValue, setSelectManyValue] = useState<string>("");
   const [selectJaValue, setSelectJaValue] = useState<string>("");
@@ -765,6 +766,7 @@ export default function Demo() {
                         placeholder="Select framework..."
                         variant={selectVariant || undefined}
                         value={selectValue}
+                        align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value, option) => {
                           setSelectValue(value);
                           toast({
@@ -791,6 +793,7 @@ export default function Demo() {
                         optionValueKey="id"
                         placeholder="Select language..."
                         variant={selectVariant || undefined}
+                        align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value, option) => {
                           toast({
                             title: "Language Selected",
@@ -808,6 +811,7 @@ export default function Demo() {
                         placeholder="Select an option (101 items)..."
                         variant={selectVariant || undefined}
                         value={selectManyValue}
+                        align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value, option) => {
                           setSelectManyValue(value);
                           toast({
@@ -828,6 +832,7 @@ export default function Demo() {
                         options={[]}
                         placeholder="Select an option (0 items)..."
                         variant={selectVariant || undefined}
+                        align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value) => {
                           toast({
                             title: "Empty Option Selected",
@@ -849,6 +854,7 @@ export default function Demo() {
                         placeholder="Please choose..."
                         variant={selectVariant || undefined}
                         value={selectJaValue}
+                        align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value, option) => {
                           setSelectJaValue(value);
                           toast({
@@ -877,6 +883,7 @@ export default function Demo() {
                         placeholder="Custom color grid..."
                         variant={selectVariant || undefined}
                         value={selectCustomValue}
+                        align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value) => {
                           setSelectCustomValue(value);
                           toast({
@@ -922,6 +929,7 @@ export default function Demo() {
                         placeholder="Select date and time..."
                         variant={selectVariant || undefined}
                         value={datetimeValue}
+                        align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(val) => {
                           setDatetimeValue(val);
                           toast({
@@ -982,6 +990,26 @@ export default function Demo() {
                       </Button>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dropdown Alignment</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["auto", "start", "end"] as const).map((a) => (
+                      <Button
+                        key={a}
+                        size="sm"
+                        variant={selectAlign === a ? "primary" : "outline"}
+                        onClick={() => setSelectAlign(a)}
+                        className="text-xs w-full"
+                      >
+                        {a === "auto" ? "Auto (Dynamic)" : a}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-normal mt-1">
+                    Auto alignment checks screen space dynamically: left-aligned if it fits, right-aligned otherwise.
+                  </p>
                 </div>
 
                 <div className="space-y-2 pt-2 border-t border-border">

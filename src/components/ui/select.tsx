@@ -44,6 +44,7 @@ export interface SelectProps {
   showConfirm?: boolean;
   onOk?: (value: string) => void;
   confirmRef?: React.RefObject<(() => void) | undefined>;
+  align?: "start" | "end" | "center";
 }
 
 const defaultTranslations: Record<string, SelectTranslations> = {
@@ -99,12 +100,52 @@ export function Select(props: SelectProps) {
     renderContent,
     showConfirm,
     onOk,
-    confirmRef
+    confirmRef,
+    align
   } = props;
 
   const [internalOpen, setInternalOpen] = React.useState(false);
   const isOpenControlled = "open" in props;
   const open = isOpenControlled ? controlledOpen : internalOpen;
+
+  const [dynamicAlign, setDynamicAlign] = React.useState<"start" | "end">("start");
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
+
+  // SSR-safe layout effect to perform calculations before browser paint
+  const useIsomorphicLayoutEffect = typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
+
+  useIsomorphicLayoutEffect(() => {
+    if (!open || !triggerRef.current) return;
+
+    const updateAlignment = () => {
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const spaceOnRight = viewportWidth - rect.left;
+      
+      // If we have content mounted, measure exact width, otherwise estimate 384px
+      const contentWidth = contentRef.current 
+        ? contentRef.current.getBoundingClientRect().width 
+        : 384;
+
+      if (spaceOnRight < contentWidth) {
+        setDynamicAlign("end");
+      } else {
+        setDynamicAlign("start");
+      }
+    };
+
+    updateAlignment();
+
+    // Re-verify on next frame to account for portal rendering timing
+    const frameId = requestAnimationFrame(updateAlignment);
+
+    window.addEventListener("resize", updateAlignment);
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", updateAlignment);
+    };
+  }, [open]);
   const [internalValue, setInternalValue] = React.useState<string | undefined>(() => {
     return ("defaultValue" in props) ? defaultValue : undefined;
   });
@@ -351,7 +392,8 @@ export function Select(props: SelectProps) {
         </DropdownMenuPrimitive.Trigger>
         <DropdownMenuPrimitive.Portal>
           <DropdownMenuPrimitive.Content
-            align="start"
+            ref={contentRef}
+            align={align || dynamicAlign}
             side="bottom"
             onCloseAutoFocus={(event) => event.preventDefault()}
             onPointerDownOutside={(event) => {
