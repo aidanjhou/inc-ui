@@ -24,7 +24,10 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
-        "src": path.resolve(__dirname, "./src")
+        "src": path.resolve(__dirname, "./src"),
+        "use-sync-external-store/shim/index.js": "react",
+        "use-sync-external-store/shim": "react",
+        "use-sync-external-store": "react"
       }
     },
     build: {
@@ -52,10 +55,7 @@ export default defineConfig(({ mode }) => {
                 "clsx",
                 "tailwind-merge",
                 "class-variance-authority",
-                "tailwindcss-animate",
-                "use-sync-external-store",
-                "use-sync-external-store/shim",
-                "use-sync-external-store/shim/index.js"
+                "tailwindcss-animate"
               ],
               output: {
                 globals: {
