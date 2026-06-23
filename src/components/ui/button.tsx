@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
+import { Button as AriaButton } from "react-aria-components";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "src/lib/utils";
@@ -40,30 +42,31 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean
-  loading?: boolean
+  asChild?: boolean;
+  loading?: boolean;
+  onPress?: (e: any) => void;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading = false, children, disabled, ...props }, ref) => {
+    const classNames = cn(buttonVariants({ variant, size, className }));
+
     if (asChild) {
-      return (
-        <Slot
-          className={cn(buttonVariants({ variant, size, className }))}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </Slot>
-      );
+      const child = React.Children.only(children) as React.ReactElement<any>;
+      return React.cloneElement(child, {
+        className: cn(classNames, child.props.className),
+        ref,
+        disabled: disabled || loading,
+        ...props
+      });
     }
 
     return (
-      <button
-        className={cn(buttonVariants({ variant, size, className }))}
-        disabled={disabled || loading}
-        ref={ref}
-        {...props}
+      <AriaButton
+        className={classNames}
+        isDisabled={disabled || loading}
+        ref={ref as any}
+        {...(props as any)}
       >
         {loading && (
           <svg
@@ -88,7 +91,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           </svg>
         )}
         {children}
-      </button>
+      </AriaButton>
     );
   }
 );

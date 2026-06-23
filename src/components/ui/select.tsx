@@ -1,14 +1,64 @@
-"use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/preserve-manual-memoization */
 
 import * as React from "react";
 import { Check, ChevronDown, X, ChevronUp, Search } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useUIConfig } from "../../context/UIConfigContext";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import {
+  Popover as AriaPopover,
+  Menu as AriaMenu,
+  MenuItem as AriaMenuItem,
+  Modal as AriaModal,
+  ModalOverlay as AriaModalOverlay,
+  Dialog as AriaDialog,
+  Heading as AriaHeading
+} from "react-aria-components";
 import { Button } from "./button";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SelectContext = React.createContext<{
+  open: boolean;
+  setOpen: (open: boolean) => void;
+} | null>(null);
+
+const DialogPrimitive = {
+  Title: React.forwardRef<HTMLHeadingElement, any>(({ className, ...props }, ref) => (
+    <AriaHeading
+      slot="title"
+      ref={ref}
+      className={className}
+      {...props}
+    />
+  )),
+  CloseTrigger: React.forwardRef<HTMLButtonElement, any>(({ children, asChild, onClick, ...props }, ref) => {
+    const ctx = React.useContext(SelectContext);
+    const handleClose = (e: any) => {
+      onClick?.(e);
+      ctx?.setOpen(false);
+    };
+
+    if (asChild) {
+      const child = React.Children.only(children) as React.ReactElement<any>;
+      return React.cloneElement(child, {
+        onClick: (e: any) => {
+          child.props.onClick?.(e);
+          handleClose(e);
+        }
+      });
+    }
+
+    return (
+      <button
+        ref={ref}
+        onClick={handleClose}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  })
+};
+
 export type SelectOption = any
 
 export interface SelectTranslations {
@@ -108,44 +158,6 @@ export function Select(props: SelectProps) {
   const isOpenControlled = "open" in props;
   const open = isOpenControlled ? controlledOpen : internalOpen;
 
-  const [dynamicAlign, setDynamicAlign] = React.useState<"start" | "end">("start");
-  const contentRef = React.useRef<HTMLDivElement | null>(null);
-
-  // SSR-safe layout effect to perform calculations before browser paint
-  const useIsomorphicLayoutEffect = typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
-
-  useIsomorphicLayoutEffect(() => {
-    if (!open || !triggerRef.current) return;
-
-    const updateAlignment = () => {
-      if (!triggerRef.current) return;
-      const rect = triggerRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const spaceOnRight = viewportWidth - rect.left;
-      
-      // If we have content mounted, measure exact width, otherwise estimate 384px
-      const contentWidth = contentRef.current 
-        ? contentRef.current.getBoundingClientRect().width 
-        : 384;
-
-      if (spaceOnRight < contentWidth) {
-        setDynamicAlign("end");
-      } else {
-        setDynamicAlign("start");
-      }
-    };
-
-    updateAlignment();
-
-    // Re-verify on next frame to account for portal rendering timing
-    const frameId = requestAnimationFrame(updateAlignment);
-
-    window.addEventListener("resize", updateAlignment);
-    return () => {
-      cancelAnimationFrame(frameId);
-      window.removeEventListener("resize", updateAlignment);
-    };
-  }, [open]);
   const [internalValue, setInternalValue] = React.useState<string | undefined>(() => {
     return ("defaultValue" in props) ? defaultValue : undefined;
   });
@@ -208,7 +220,7 @@ export function Select(props: SelectProps) {
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [matchIndex, setMatchIndex] = React.useState(0);
-  const handleOpenChange = (isOpen: boolean) => {
+  const handleOpenChange = React.useCallback((isOpen: boolean) => {
     if (!isOpenControlled) {
       setInternalOpen(isOpen);
     }
@@ -217,7 +229,12 @@ export function Select(props: SelectProps) {
       setSearchQuery("");
       setMatchIndex(0);
     }
-  };
+  }, [isOpenControlled, onOpenChange]);
+  const contextValue = React.useMemo(() => ({
+    open: open || false,
+    setOpen: handleOpenChange
+  }), [open, handleOpenChange]);
+
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const triggerRef = React.useRef<HTMLButtonElement | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -260,7 +277,12 @@ export function Select(props: SelectProps) {
           }
           parent = parent.parentElement;
         }
+        
+        // Use scrollIntoView but prevent page jump (mimicking Radix/Shadcn scroll prevention)
+        const x = window.scrollX;
+        const y = window.scrollY;
         element.scrollIntoView({ block: "start", behavior: "auto" });
+        window.scrollTo(x, y);
       }
     }
   }, [optionValueKey]);
@@ -361,72 +383,84 @@ export function Select(props: SelectProps) {
           }
           parent = parent.parentElement;
         }
+        
+        // Use scrollIntoView but prevent page jump (mimicking Radix/Shadcn scroll prevention)
+        const x = window.scrollX;
+        const y = window.scrollY;
         node.scrollIntoView({ block: "start", behavior: "auto" });
+        window.scrollTo(x, y);
       }, 250);
     }
   }, []);
 
+  const placementMap = {
+    start: "bottom start",
+    center: "bottom",
+    end: "bottom end"
+  } as const;
+  const placement = placementMap[align || "start"];
+
   // 1. Dropdown variant (standard desktop select)
   if (activeVariant === "dropdown") {
     return (
-      <DropdownMenuPrimitive.Root open={open} onOpenChange={handleOpenChange} modal={false}>
-        <DropdownMenuPrimitive.Trigger asChild disabled={disabled}>
-          <button
-            ref={triggerRef}
-            {...(!selectedOption ? { "data-placeholder": "" } : {})}
-            className={cn(
-              "w-full h-10 flex items-center justify-between px-3 py-2 rounded-md text-sm [&>span]:line-clamp-1 focus:outline-none transition-colors select-none",
-              "bg-background border border-input text-foreground data-[placeholder]:text-muted-foreground cursor-pointer text-left",
-              "hover:bg-primary/5 hover:border-primary hover:text-foreground hover:data-[placeholder]:text-foreground",
-              "focus:bg-primary/5 focus:border-primary focus:text-foreground focus:data-[placeholder]:text-foreground",
-              open && "bg-primary/5 border-primary text-foreground data-[placeholder]:text-foreground",
-              "disabled:bg-muted disabled:border-muted disabled:text-foreground disabled:data-[placeholder]:text-muted-foreground disabled:cursor-not-allowed",
-              triggerClassName
-            )}
+      <SelectContext.Provider value={contextValue}>
+        <button
+          ref={triggerRef}
+          {...(!selectedOption ? { "data-placeholder": "" } : {})}
+          className={cn(
+            "w-full h-10 flex items-center justify-between px-3 py-2 rounded-md text-sm [&>span]:line-clamp-1 focus:outline-none transition-colors select-none",
+            "bg-background border border-input text-foreground data-[placeholder]:text-muted-foreground cursor-pointer text-left",
+            "hover:bg-primary/5 hover:border-primary hover:text-foreground hover:data-[placeholder]:text-foreground",
+            "focus:bg-primary/5 focus:border-primary focus:text-foreground focus:data-[placeholder]:text-foreground",
+            open && "bg-primary/5 border-primary text-foreground data-[placeholder]:text-foreground",
+            "disabled:bg-muted disabled:border-muted disabled:text-foreground disabled:data-[placeholder]:text-muted-foreground disabled:cursor-not-allowed",
+            triggerClassName
+          )}
+          onClick={() => {
+            if (!disabled) {
+              handleOpenChange(true);
+            }
+          }}
+        >
+          <span>
+            {selectedOption ? String(selectedOption[optionLabelKey]) : (value || resolvedPlaceholder)}
+          </span>
+          <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+        </button>
+        <AriaPopover
+          isOpen={open}
+          onOpenChange={handleOpenChange}
+          triggerRef={triggerRef as React.RefObject<HTMLButtonElement>}
+          placement={placement}
+          offset={4}
+          className={({ isEntering, isExiting }) => cn(
+            "z-50 min-w-[8rem] max-h-60 flex flex-col rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
+            "w-[var(--trigger-width)]",
+            isEntering && "animate-in fade-in-0 zoom-in-95 duration-100",
+            isExiting && "animate-out fade-out-0 zoom-out-95 duration-75",
+            className
+          )}
+        >
+          {shouldShowSearch && <div className="mb-1">{searchBar}</div>}
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto space-y-1"
           >
-            <span>
-              {selectedOption ? String(selectedOption[optionLabelKey]) : (value || resolvedPlaceholder)}
-            </span>
-            <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
-          </button>
-        </DropdownMenuPrimitive.Trigger>
-        <DropdownMenuPrimitive.Portal>
-          <DropdownMenuPrimitive.Content
-            ref={contentRef}
-            align={align || dynamicAlign}
-            side="bottom"
-            onCloseAutoFocus={(event) => event.preventDefault()}
-            onPointerDownOutside={(event) => {
-              const target = event.target as Node | null;
-              if (target && triggerRef.current && triggerRef.current.contains(target)) {
-                event.preventDefault();
-              }
-            }}
-            className={cn(
-              "z-50 min-w-[8rem] max-h-60 flex flex-col rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2",
-              "w-[var(--radix-dropdown-menu-trigger-width)]",
-              className
-            )}
-            sideOffset={4}
-          >
-            {shouldShowSearch && <div className="mb-1">{searchBar}</div>}
-            <div
-              ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto space-y-1"
-            >
-              {renderContent ? (
-                renderContent({
-                  value,
-                  onChange: handleSelect,
-                  close: () => handleOpenChange(false),
-                  onOk: handleConfirmClick
-                })
-              ) : !options || options.length === 0 ? (
-                <div className="flex items-center justify-center py-6 text-xs text-muted-foreground select-none">
-                  {t.noData}
-                </div>
-              ) : (
-                options.map((option) => {
+            {renderContent ? (
+              // eslint-disable-next-line react-hooks/refs
+              renderContent({
+                value,
+                onChange: handleSelect,
+                close: () => handleOpenChange(false),
+                onOk: handleConfirmClick
+              })
+            ) : !options || options.length === 0 ? (
+              <div className="flex items-center justify-center py-6 text-xs text-muted-foreground select-none">
+                {t.noData}
+              </div>
+            ) : (
+              <AriaMenu className="outline-none" aria-label="Select Options">
+                {options.map((option) => {
                   const isSelected = value === String(option[optionValueKey]);
                   const optionVal = String(option[optionValueKey]);
                   const optionLabel = String(option[optionLabelKey]);
@@ -434,30 +468,31 @@ export function Select(props: SelectProps) {
                   const isActiveMatch = isMatched && matches[matchIndex] && String(matches[matchIndex][optionValueKey]) === optionVal;
 
                   return (
-                    <DropdownMenuPrimitive.Item
+                    <AriaMenuItem
                       key={optionVal}
-                      data-value={optionVal}
+                      id={optionVal}
+                      textValue={optionLabel}
                       ref={isSelected ? selectedRef : undefined}
                       className={cn(
-                        "relative flex cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none border border-transparent transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                        "relative flex cursor-default select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none border border-transparent transition-colors focus:bg-accent focus:text-accent-foreground data-[focused]:bg-accent data-[focused]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
                         isMatched && "bg-primary/5",
                         isActiveMatch && "border-primary"
                       )}
-                      onClick={() => {
+                      onAction={() => {
                         handleSelect(option);
                         handleOpenChange(false);
                       }}
                     >
                       <span>{optionLabel}</span>
                       {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
-                    </DropdownMenuPrimitive.Item>
+                    </AriaMenuItem>
                   );
-                })
-              )}
-            </div>
-          </DropdownMenuPrimitive.Content>
-        </DropdownMenuPrimitive.Portal>
-      </DropdownMenuPrimitive.Root>
+                })}
+              </AriaMenu>
+            )}
+          </div>
+        </AriaPopover>
+      </SelectContext.Provider>
     );
   }
 
@@ -470,16 +505,16 @@ export function Select(props: SelectProps) {
     modalContent = (
       <>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/20">
-          <DialogPrimitive.Close className="text-sm font-medium text-muted-foreground hover:text-foreground">
+          <DialogPrimitive.CloseTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground">
             {t.cancel}
-          </DialogPrimitive.Close>
+          </DialogPrimitive.CloseTrigger>
           <span className="text-sm font-semibold">{label || resolvedPlaceholder}</span>
-          <DialogPrimitive.Close 
+          <DialogPrimitive.CloseTrigger 
             className="text-sm font-semibold text-primary hover:text-primary/80"
             onClick={handleConfirmClick}
           >
             {t.done}
-          </DialogPrimitive.Close>
+          </DialogPrimitive.CloseTrigger>
         </div>
         {shouldShowSearch && (
           <div className="px-4 pt-3 pb-2 border-b border-border">
@@ -488,6 +523,7 @@ export function Select(props: SelectProps) {
         )}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 pt-1 pb-4 space-y-1">
           {renderContent ? (
+            // eslint-disable-next-line react-hooks/refs
             renderContent({
               value,
               onChange: handleSelect,
@@ -548,6 +584,7 @@ export function Select(props: SelectProps) {
           )}
           <div ref={scrollContainerRef} className="overflow-y-auto max-h-[50vh] divide-y divide-border">
             {renderContent ? (
+              // eslint-disable-next-line react-hooks/refs
               renderContent({
                 value,
                 onChange: handleSelect,
@@ -598,11 +635,11 @@ export function Select(props: SelectProps) {
             {t.done}
           </button>
         )}
-        <DialogPrimitive.Close asChild>
+        <DialogPrimitive.CloseTrigger asChild>
           <button className="w-full py-3.5 text-center text-sm font-semibold rounded-xl bg-popover text-popover-foreground border hover:bg-accent transition-colors shadow-lg focus:outline-none">
             {t.cancel}
           </button>
-        </DialogPrimitive.Close>
+        </DialogPrimitive.CloseTrigger>
       </>
     );
   } else if (activeVariant === "bottom-modal") {
@@ -613,7 +650,7 @@ export function Select(props: SelectProps) {
           <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
             {label || resolvedPlaceholder}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Close asChild>
+          <DialogPrimitive.CloseTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
@@ -622,7 +659,7 @@ export function Select(props: SelectProps) {
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </Button>
-          </DialogPrimitive.Close>
+          </DialogPrimitive.CloseTrigger>
         </div>
         {shouldShowSearch && (
           <div className="px-6 pt-3 pb-2 border-b border-border">
@@ -632,6 +669,7 @@ export function Select(props: SelectProps) {
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 pt-1 pb-6">
           <div className="space-y-1">
             {renderContent ? (
+              // eslint-disable-next-line react-hooks/refs
               renderContent({
                 value,
                 onChange: handleSelect,
@@ -684,7 +722,7 @@ export function Select(props: SelectProps) {
           <DialogPrimitive.Title className="text-lg font-semibold leading-none tracking-tight">
             {label || resolvedPlaceholder}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Close asChild>
+          <DialogPrimitive.CloseTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
@@ -693,7 +731,7 @@ export function Select(props: SelectProps) {
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </Button>
-          </DialogPrimitive.Close>
+          </DialogPrimitive.CloseTrigger>
         </div>
         {shouldShowSearch && (
           <div className="px-6 pt-3 pb-2 border-b border-border">
@@ -703,6 +741,7 @@ export function Select(props: SelectProps) {
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 pt-1 pb-6">
           <div className="space-y-1">
             {renderContent ? (
+              // eslint-disable-next-line react-hooks/refs
               renderContent({
                 value,
                 onChange: handleSelect,
@@ -750,35 +789,53 @@ export function Select(props: SelectProps) {
   }
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={handleOpenChange}>
-      <DialogPrimitive.Trigger asChild disabled={disabled}>
-        <button
-          {...(!selectedOption ? { "data-placeholder": "" } : {})}
-          className={cn(
-            "w-full h-10 flex items-center justify-between px-3 py-2 rounded-md text-sm [&>span]:line-clamp-1 focus:outline-none transition-colors select-none",
-            "bg-background border border-input text-foreground data-[placeholder]:text-muted-foreground cursor-pointer text-left",
-            "hover:bg-primary/5 hover:border-primary hover:text-foreground hover:data-[placeholder]:text-foreground",
-            "focus:bg-primary/5 focus:border-primary focus:text-foreground focus:data-[placeholder]:text-foreground",
-            open && "bg-primary/5 border-primary text-foreground data-[placeholder]:text-foreground",
-            "disabled:bg-muted disabled:border-muted disabled:text-foreground disabled:data-[placeholder]:text-muted-foreground disabled:cursor-not-allowed",
-            triggerClassName
+    <SelectContext.Provider value={contextValue}>
+      <button
+        ref={triggerRef}
+        {...(!selectedOption ? { "data-placeholder": "" } : {})}
+        className={cn(
+          "w-full h-10 flex items-center justify-between px-3 py-2 rounded-md text-sm [&>span]:line-clamp-1 focus:outline-none transition-colors select-none",
+          "bg-background border border-input text-foreground data-[placeholder]:text-muted-foreground cursor-pointer text-left",
+          "hover:bg-primary/5 hover:border-primary hover:text-foreground hover:data-[placeholder]:text-foreground",
+          "focus:bg-primary/5 focus:border-primary focus:text-foreground focus:data-[placeholder]:text-foreground",
+          open && "bg-primary/5 border-primary text-foreground data-[placeholder]:text-foreground",
+          "disabled:bg-muted disabled:border-muted disabled:text-foreground disabled:data-[placeholder]:text-muted-foreground disabled:cursor-not-allowed",
+          triggerClassName
+        )}
+        onClick={() => {
+          if (!disabled) {
+            handleOpenChange(true);
+          }
+        }}
+      >
+        <span>
+          {selectedOption ? String(selectedOption[optionLabelKey]) : (value || resolvedPlaceholder)}
+        </span>
+        <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+      </button>
+
+      <AriaModalOverlay
+        isOpen={open}
+        onOpenChange={handleOpenChange}
+        className={({ isEntering, isExiting }) => cn(
+          "fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4",
+          isEntering && "animate-in fade-in-0 duration-200",
+          isExiting && "animate-out fade-out-0 duration-200"
+        )}
+      >
+        <AriaModal
+          className={({ isEntering, isExiting }) => cn(
+            contentClassName,
+            isEntering && "animate-in fade-in-0 zoom-in-95 duration-200",
+            isExiting && "animate-out fade-out-0 zoom-out-95 duration-200",
+            className
           )}
         >
-          <span>
-            {selectedOption ? String(selectedOption[optionLabelKey]) : (value || resolvedPlaceholder)}
-          </span>
-          <ChevronDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
-        </button>
-      </DialogPrimitive.Trigger>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content
-          onCloseAutoFocus={(event) => event.preventDefault()}
-          className={cn(contentClassName, className)}
-        >
-          {modalContent}
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+          <AriaDialog className="outline-none h-full flex flex-col">
+            {modalContent}
+          </AriaDialog>
+        </AriaModal>
+      </AriaModalOverlay>
+    </SelectContext.Provider>
   );
 }

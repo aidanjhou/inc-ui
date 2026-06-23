@@ -1,62 +1,153 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import {
+  Modal as AriaModal,
+  ModalOverlay as AriaModalOverlay,
+  Dialog as AriaDialog,
+  Heading as AriaHeading
+} from "react-aria-components";
 import { X } from "lucide-react";
 
 import { cn } from "src/lib/utils";
 import { Button } from "./button";
 
-const Dialog = DialogPrimitive.Root;
+const DialogContext = React.createContext<{
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+} | null>(null);
 
-const DialogTrigger = DialogPrimitive.Trigger;
+interface DialogProps {
+  children?: React.ReactNode;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
 
-const DialogPortal = DialogPrimitive.Portal;
+const Dialog = ({ open, defaultOpen, onOpenChange, children }: DialogProps) => {
+  const [isOpenState, setIsOpenState] = React.useState(defaultOpen || false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : isOpenState;
 
-const DialogClose = DialogPrimitive.Close;
+  const setIsOpen = React.useCallback(
+    (val: boolean) => {
+      if (!isControlled) {
+        setIsOpenState(val);
+      }
+      onOpenChange?.(val);
+    },
+    [isControlled, onOpenChange]
+  );
+
+  return (
+    <DialogContext.Provider value={{ isOpen, setIsOpen }}>
+      {children}
+    </DialogContext.Provider>
+  );
+};
+Dialog.displayName = "Dialog";
+
+const DialogTrigger = ({ children }: { children: React.ReactElement<any>; asChild?: boolean }) => {
+  const context = React.useContext(DialogContext);
+  if (!context) throw new Error("DialogTrigger must be used within Dialog");
+  const { setIsOpen } = context;
+
+  return React.cloneElement(React.Children.only(children) as React.ReactElement<any>, {
+    onPress: () => setIsOpen(true),
+    onClick: (e: any) => {
+      children.props.onClick?.(e);
+      setIsOpen(true);
+    }
+  });
+};
+DialogTrigger.displayName = "DialogTrigger";
+
+const DialogClose = ({ children }: { children: React.ReactElement<any>; asChild?: boolean }) => {
+  const context = React.useContext(DialogContext);
+  if (!context) throw new Error("DialogClose must be used within Dialog");
+  const { setIsOpen } = context;
+
+  return React.cloneElement(React.Children.only(children) as React.ReactElement<any>, {
+    onPress: () => setIsOpen(false),
+    onClick: (e: any) => {
+      children.props.onClick?.(e);
+      setIsOpen(false);
+    }
+  });
+};
+DialogClose.displayName = "DialogClose";
+
+const DialogPortal = ({ children }: { children: React.ReactNode }) => {
+  return <>{children}</>;
+};
+DialogPortal.displayName = "DialogPortal";
 
 const DialogOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<typeof AriaModalOverlay>
+>((({ className, ...props }, ref) => (
+  <AriaModalOverlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/80 data-[entering]:animate-in data-[exiting]:animate-out data-[exiting]:fade-out-0 data-[entering]:fade-in-0",
       className
     )}
     {...props}
   />
-));
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+)));
+DialogOverlay.displayName = "DialogOverlay";
 
 const DialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
-        className
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<typeof AriaDialog> & { className?: string }
+>(({ className, children, ...props }, ref) => {
+  const context = React.useContext(DialogContext);
+  if (!context) throw new Error("DialogContent must be used within Dialog");
+  const { isOpen, setIsOpen } = context;
+
+  return (
+    <AriaModalOverlay
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      className={({ isEntering, isExiting }) => cn(
+        "fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4",
+        isEntering && "animate-in fade-in-0 duration-200",
+        isExiting && "animate-out fade-out-0 duration-200"
       )}
-      {...props}
     >
-      {children}
-      <DialogPrimitive.Close asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-4 top-4 h-7 w-7 p-0 rounded-md text-muted-foreground hover:text-foreground"
+      <AriaModal
+        className={({ isEntering, isExiting }) => cn(
+          "w-full max-w-lg overflow-hidden border bg-background shadow-lg sm:rounded-lg focus:outline-none",
+          isEntering && "animate-in fade-in-0 zoom-in-95 duration-200",
+          isExiting && "animate-out fade-out-0 zoom-out-95 duration-200",
+          className
+        )}
+      >
+        <AriaDialog
+          ref={ref}
+          className="relative outline-none p-6 gap-4 grid"
+          {...props}
         >
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </Button>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-));
-DialogContent.displayName = DialogPrimitive.Content.displayName;
+          {({ close }) => (
+            <>
+              {typeof children === "function" ? children({ close }) : children}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-4 top-4 h-7 w-7 p-0 rounded-md text-muted-foreground hover:text-foreground"
+                onPress={() => setIsOpen(false)}
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </>
+          )}
+        </AriaDialog>
+      </AriaModal>
+    </AriaModalOverlay>
+  );
+});
+DialogContent.displayName = "DialogContent";
 
 const DialogHeader = ({
   className,
@@ -87,10 +178,11 @@ const DialogFooter = ({
 DialogFooter.displayName = "DialogFooter";
 
 const DialogTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+  HTMLHeadingElement,
+  React.ComponentPropsWithoutRef<typeof AriaHeading>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
+  <AriaHeading
+    slot="title"
     ref={ref}
     className={cn(
       "text-lg font-semibold leading-none tracking-tight",
@@ -99,19 +191,19 @@ const DialogTitle = React.forwardRef<
     {...props}
   />
 ));
-DialogTitle.displayName = DialogPrimitive.Title.displayName;
+DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
+  <p
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 ));
-DialogDescription.displayName = DialogPrimitive.Description.displayName;
+DialogDescription.displayName = "DialogDescription";
 
 export {
   Dialog,

@@ -48,9 +48,7 @@ export default defineConfig(({ mode }) => {
               "clsx",
               "tailwind-merge",
               "class-variance-authority",
-              "lucide-react",
-              "tailwindcss-animate",
-              /^@radix-ui\//
+              "tailwindcss-animate"
             ],
             output: {
               globals: {

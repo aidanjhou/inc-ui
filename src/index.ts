@@ -53,20 +53,13 @@ export {
   DropdownMenuRadioGroup
 } from "./components/ui/dropdown-menu";
 
-// Export Toast & Notification system
-export {
-  type ToastProps,
-  type ToastActionElement,
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-  ToastAction
-} from "./components/ui/toast";
-export { Toaster } from "./components/ui/toaster";
-export { useToast, toast } from "./hooks/use-toast";
+export { MessagePrompter, Message } from "./components/ui/message";
+export type { MessagePrompterProps, MessageProps, MessageVariant } from "./components/ui/message";
+export { message } from "./hooks/message";
+export type { MessageOptions } from "./hooks/message";
+
+export { Loading } from "./components/ui/loading";
+export type { LoadingProps, LoadingVariant } from "./components/ui/loading";
 
 // Export UIConfig Context & Provider
 export { UIConfigContext, UIConfigProvider, useUIConfig } from "./context/UIConfigContext";
@@ -79,4 +72,12 @@ export type { SelectProps, SelectOption } from "./components/ui/select";
 // Export DatetimeSelect component
 export { DatetimeSelect } from "./components/ui/datetime-select";
 export type { DatetimeSelectProps } from "./components/ui/datetime-select";
+
+// Export Chart component
+export { Chart } from "./components/ui/chart";
+export type { ChartProps, ChartType, ApexOptions } from "./components/ui/chart";
+
+// Export Grid component
+export { Grid } from "./components/ui/grid";
+export type { GridProps } from "./components/ui/grid";
 

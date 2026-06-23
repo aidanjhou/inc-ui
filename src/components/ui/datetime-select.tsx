@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { cn } from "../../lib/utils";
 import { Select } from "./select";
@@ -102,12 +100,35 @@ function DatetimeSelectContent({
   // Auto-scroll selected options to the top of scroll areas
   React.useEffect(() => {
     const timer = setTimeout(() => {
+      const x = window.scrollX;
+      const y = window.scrollY;
+      let scrolled = false;
+
       [hoursRef, minutesRef, secondsRef].forEach((ref) => {
         if (ref.current) {
           const activeBtn = ref.current.querySelector('[data-selected="true"]');
-          activeBtn?.scrollIntoView({ block: "start", behavior: "auto" });
+          if (activeBtn instanceof HTMLElement) {
+            let parent = activeBtn.parentElement;
+            while (parent && parent !== document.body) {
+              const style = window.getComputedStyle(parent);
+              if (style.overflowY === "auto" || style.overflowY === "scroll") {
+                const paddingTop = style.paddingTop;
+                if (paddingTop) {
+                  activeBtn.style.scrollMarginTop = paddingTop;
+                }
+                break;
+              }
+              parent = parent.parentElement;
+            }
+            activeBtn.scrollIntoView({ block: "start", behavior: "auto" });
+            scrolled = true;
+          }
         }
       });
+      
+      if (scrolled) {
+        window.scrollTo(x, y);
+      }
     }, 100);
     return () => clearTimeout(timer);
   }, []);

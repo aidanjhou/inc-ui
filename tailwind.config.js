@@ -1,4 +1,14 @@
 /** @type {import("tailwindcss").Config} */
+import plugin from "tailwindcss/plugin";
+
+// 基础颜色 RGB（与 CSS 变量保持一致）
+const baseColors = {
+  destructive: "239 68 68",
+  success: "22 163 74",
+  warning: "245 159 10",
+  info: "0 114 245",
+};
+
 export default {
   darkMode: ["class"],
   content: [
@@ -45,6 +55,18 @@ export default {
           DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
           foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
         },
+        success: {
+          DEFAULT: "hsl(var(--success) / <alpha-value>)",
+          foreground: "hsl(var(--success-foreground) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning) / <alpha-value>)",
+          foreground: "hsl(var(--warning-foreground) / <alpha-value>)",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info) / <alpha-value>)",
+          foreground: "hsl(var(--info-foreground) / <alpha-value>)",
+        },
         border: "hsl(var(--border) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",
         ring: "hsl(var(--ring) / <alpha-value>)",
@@ -70,5 +92,25 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    plugin(function ({ matchUtilities }) {
+      Object.entries(baseColors).forEach(([colorName, rgbValue]) => {
+        matchUtilities(
+          {
+            [`bg-${colorName}`]: (value) => {
+              const lightness = parseInt(value);
+              const opacity = lightness / 100;
+              const baseBg = lightness < 50 ? "#000000" : "#ffffff";
+              const finalOpacity = lightness < 50 ? opacity : 1 - opacity;
+              return {
+                background: `linear-gradient(rgb(${rgbValue} / ${finalOpacity}), rgb(${rgbValue} / ${finalOpacity})) ${baseBg}`,
+              };
+            },
+          },
+          { values: { 30: "30", 50: "50", 70: "70", 90: "90" } }
+        );
+      });
+    }),
+  ],
 }
