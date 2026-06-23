@@ -2,6 +2,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react";
 import { Button as AriaButton } from "react-aria-components";
+import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "src/lib/utils";
@@ -42,64 +43,29 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
   VariantProps<typeof buttonVariants> {
-  /** The HTML element to render, e.g. 'button', 'a'. */
-  elementType?: 'button' | 'a';
-  /** A URL to link to if elementType="a". */
-  href?: string;
-  /** The target window for the link. */
-  target?: string;
-  /** The relationship between the linked resource and the current page. */
-  rel?: string;
+  asChild?: boolean;
   loading?: boolean;
   onPress?: (e: any) => void;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, elementType = 'button', loading = false, children, disabled, href, target, rel, ...props }, ref) => {
-    const classNames = cn(buttonVariants({ variant, size, className }));
-
-    if (elementType !== 'button') {
-      const Element = elementType;
+  ({ className, variant, size, asChild = false, loading = false, children, disabled, ...props }, ref) => {
+    if (asChild) {
       return (
-        <Element
-          ref={ref as any}
-          className={classNames}
-          href={href}
-          target={target}
-          rel={rel}
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
           aria-disabled={disabled || loading || undefined}
           {...(props as any)}
         >
-          {loading && (
-            <svg
-              className="mr-2 h-4 w-4 animate-spin text-current"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-          )}
           {children}
-        </Element>
+        </Slot>
       );
     }
 
     return (
       <AriaButton
-        className={classNames}
+        className={cn(buttonVariants({ variant, size, className }))}
         isDisabled={disabled || loading}
         ref={ref as any}
         {...(props as any)}

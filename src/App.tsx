@@ -779,13 +779,12 @@ export default function DataTable() {
             <Button
               variant="outline"
               size="icon"
-              elementType="a"
-              href="https://github.com/aidanjhou/inc-ui"
-              target="_blank"
-              rel="noreferrer"
+              asChild
               className="hidden sm:inline-flex rounded-full"
             >
-              <GithubIcon className="h-5 w-5" />
+              <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
+                <GithubIcon className="h-5 w-5" />
+              </a>
             </Button>
           </div>
         </div>
@@ -813,8 +812,10 @@ export default function DataTable() {
             }}>
               Explore Components
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto" elementType="a" href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
-              <GithubIcon className="mr-2 h-5 w-5" /> GitHub Project
+            <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
+              <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
+                <GithubIcon className="mr-2 h-5 w-5" /> GitHub Project
+              </a>
             </Button>
           </div>
         </section>
@@ -953,17 +954,23 @@ export default function DataTable() {
           {/* Link as Button demo */}
           <div className="border border-border bg-card/40 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[120px] shadow-sm">
             <div className="flex flex-wrap items-center gap-4">
-              <Button elementType="a" href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer" variant="primary">
-                <GithubIcon className="h-4 w-4" /> Primary Link
+              <Button asChild variant="primary">
+                <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
+                  <GithubIcon className="h-4 w-4" /> Primary Link
+                </a>
               </Button>
-              <Button elementType="a" href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer" variant="outline">
-                <GithubIcon className="h-4 w-4" /> Outline Link
+              <Button asChild variant="outline">
+                <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
+                  <GithubIcon className="h-4 w-4" /> Outline Link
+                </a>
               </Button>
-              <Button elementType="a" href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer" variant="link">
-                Text Link
+              <Button asChild variant="link">
+                <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
+                  Text Link
+                </a>
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-4 font-medium">Use <code className="text-xs font-mono">elementType="a"</code> to render as a native anchor link.</p>
+            <p className="text-xs text-muted-foreground mt-4 font-medium">Use <code className="text-xs font-mono">asChild</code> to render as any HTML element.</p>
           </div>
 
           {/* API Reference */}
@@ -973,7 +980,7 @@ export default function DataTable() {
                 <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider mb-3">API Reference</h3>
                 <div className="space-y-4">
                   <div>
-                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Button variant size loading disabled elementType href target rel&gt;children&lt;/Button&gt;</code>
+                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Button variant size loading disabled asChild&gt;children&lt;/Button&gt;</code>
                     <p className="text-xs text-muted-foreground mt-1 font-medium">A React component wrapping <code className="text-xs font-mono">react-aria-components/Button</code>. Built with CVA variant props for consistent styling.</p>
                   </div>
                 </div>
@@ -986,10 +993,7 @@ export default function DataTable() {
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">size</code>: "default" | "xs" | "sm" | "lg" | "icon" (default: "default")</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">loading</code>: boolean — shows animated spinner, disables interaction</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">disabled</code>: boolean</span></li>
-                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">elementType</code>: "button" | "a" (default: "button") — rendered HTML element</span></li>
-                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">href</code>: string — link URL when elementType="a"</span></li>
-                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">target</code>: string — link target when elementType="a"</span></li>
-                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">rel</code>: string — link rel when elementType="a"</span></li>
+                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">asChild</code>: boolean — renders as a child element via Radix Slot, merges styles into it</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">className</code>: string — Tailwind classes via cn()</span></li>
                 </ul>
               </div>
