@@ -8,6 +8,10 @@
   "main": "./dist/inc-ui.cjs",
   "module": "./dist/inc-ui.mjs",
   "types": "./dist/inc-ui.d.ts",
+  "sideEffects": [
+    "dist/inc-ui.css",
+    "**/*.css"
+  ],
   "exports": {
     ".": {
       "import": "./dist/inc-ui.mjs",
