@@ -29,8 +29,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       commonjsOptions: {
-        transformMixedEsModules: true,
-        ignoreDynamicRequires: true
+        transformMixedEsModules: true
       },
       ...(isDemo
         ? {
@@ -53,7 +52,10 @@ export default defineConfig(({ mode }) => {
                 "clsx",
                 "tailwind-merge",
                 "class-variance-authority",
-                "tailwindcss-animate"
+                "tailwindcss-animate",
+                "use-sync-external-store",
+                "use-sync-external-store/shim",
+                "use-sync-external-store/shim/index.js"
               ],
               output: {
                 globals: {
