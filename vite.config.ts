@@ -27,37 +27,43 @@ export default defineConfig(({ mode }) => {
         "src": path.resolve(__dirname, "./src")
       }
     },
-    build: isDemo
-      ? {
-          outDir: "dist-demo"
-        }
-      : {
-          outDir: "dist",
-          lib: {
-            entry: path.resolve(__dirname, "src/index.ts"),
-            name: "IncUI",
-            formats: ["es", "cjs"],
-            fileName: (format) => `inc-ui.${format === "es" ? "mjs" : "cjs"}`
-          },
-          rollupOptions: {
-            external: [
-              "react",
-              "react/jsx-runtime",
-              "react-dom",
-              "tailwindcss",
-              "clsx",
-              "tailwind-merge",
-              "class-variance-authority",
-              "tailwindcss-animate"
-            ],
-            output: {
-              globals: {
-                react: "React",
-                "react-dom": "ReactDOM",
-                tailwindcss: "tailwindcss"
+    build: {
+      commonjsOptions: {
+        transformMixedEsModules: true,
+        ignoreDynamicRequires: true
+      },
+      ...(isDemo
+        ? {
+            outDir: "dist-demo"
+          }
+        : {
+            outDir: "dist",
+            lib: {
+              entry: path.resolve(__dirname, "src/index.ts"),
+              name: "IncUI",
+              formats: ["es", "cjs"],
+              fileName: (format) => `inc-ui.${format === "es" ? "mjs" : "cjs"}`
+            },
+            rollupOptions: {
+              external: [
+                "react",
+                "react/jsx-runtime",
+                "react-dom",
+                "tailwindcss",
+                "clsx",
+                "tailwind-merge",
+                "class-variance-authority",
+                "tailwindcss-animate"
+              ],
+              output: {
+                globals: {
+                  react: "React",
+                  "react-dom": "ReactDOM",
+                  tailwindcss: "tailwindcss"
+                }
               }
             }
-          }
-        }
+          })
+    }
   };
 });
