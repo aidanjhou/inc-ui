@@ -779,12 +779,13 @@ export default function DataTable() {
             <Button
               variant="outline"
               size="icon"
-              asChild
+              elementType="a"
+              href="https://github.com/aidanjhou/inc-ui"
+              target="_blank"
+              rel="noreferrer"
               className="hidden sm:inline-flex rounded-full"
             >
-              <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
-                <GithubIcon className="h-5 w-5" />
-              </a>
+              <GithubIcon className="h-5 w-5" />
             </Button>
           </div>
         </div>

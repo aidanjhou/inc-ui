@@ -40,7 +40,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  VariantProps<typeof buttonVariants> {
   /** The HTML element to render, e.g. 'button', 'a'. */
   elementType?: 'button' | 'a';
   /** A URL to link to if elementType="a". */
@@ -50,9 +51,6 @@ export interface ButtonProps
   /** The relationship between the linked resource and the current page. */
   rel?: string;
   loading?: boolean;
-  disabled?: boolean;
-  children?: React.ReactNode;
-  className?: string;
   onPress?: (e: any) => void;
 }
 
