@@ -38,7 +38,7 @@ const DialogPrimitive = {
     };
 
     if (asChild) {
-      const child = React.Children.only(<>{children}</>) as React.ReactElement<any>;
+      const child = React.Children.only(children) as React.ReactElement<any>;
       return React.cloneElement(child, {
         onClick: (e: any) => {
           child.props.onClick?.(e);
@@ -277,7 +277,7 @@ export function Select(props: SelectProps) {
           }
           parent = parent.parentElement;
         }
-        
+
         // Use scrollIntoView but prevent page jump (mimicking Radix/Shadcn scroll prevention)
         const x = window.scrollX;
         const y = window.scrollY;
@@ -383,7 +383,7 @@ export function Select(props: SelectProps) {
           }
           parent = parent.parentElement;
         }
-        
+
         // Use scrollIntoView but prevent page jump (mimicking Radix/Shadcn scroll prevention)
         const x = window.scrollX;
         const y = window.scrollY;
@@ -509,7 +509,7 @@ export function Select(props: SelectProps) {
             {t.cancel}
           </DialogPrimitive.CloseTrigger>
           <span className="text-sm font-semibold">{label || resolvedPlaceholder}</span>
-          <DialogPrimitive.CloseTrigger 
+          <DialogPrimitive.CloseTrigger
             className="text-sm font-semibold text-primary hover:text-primary/80"
             onClick={handleConfirmClick}
           >

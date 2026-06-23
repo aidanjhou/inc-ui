@@ -49,14 +49,16 @@ DropdownMenu.displayName = "DropdownMenu";
 const DropdownMenuTrigger = React.forwardRef<
   HTMLButtonElement,
   { children: React.ReactNode; asChild?: boolean; className?: string }
->(({ children, className, ...props }, ref) => {
-  const child = React.Children.only(<>{children}</>);
-  if (React.isValidElement(child)) {
-    return React.cloneElement(child as React.ReactElement<any>, {
-      ...props,
-      ref,
-      className: cn((child.props as any)?.className, className),
-    });
+>(({ children, className, asChild, ...props }, ref) => {
+  if (asChild) {
+    const child = React.Children.only(children);
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child as React.ReactElement<any>, {
+        ...props,
+        ref,
+        className: cn((child.props as any)?.className, className),
+      });
+    }
   }
   return <>{children}</>;
 });
@@ -102,9 +104,9 @@ const DropdownMenuContent = React.forwardRef<
         cn(
           "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none",
           isEntering &&
-            "animate-in fade-in-0 zoom-in-95 duration-100",
+          "animate-in fade-in-0 zoom-in-95 duration-100",
           isExiting &&
-            "animate-out fade-out-0 zoom-out-95 duration-75",
+          "animate-out fade-out-0 zoom-out-95 duration-75",
           className,
         )
       }

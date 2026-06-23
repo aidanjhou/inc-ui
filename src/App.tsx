@@ -84,8 +84,8 @@ function App() {
   const [dropdownTab, setDropdownTab] = useState<"preview" | "code">("preview");
   const [messageTab, setMessageTab] = useState<"preview" | "code">("preview");
   const [loadingTab, setLoadingTab] = useState<"preview" | "code">("preview");
-const [chartTab, setChartTab] = useState<"preview" | "code">("preview");
-const [gridTab, setGridTab] = useState<"preview" | "code">("preview");
+  const [chartTab, setChartTab] = useState<"preview" | "code">("preview");
+  const [gridTab, setGridTab] = useState<"preview" | "code">("preview");
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // Select Playground States
@@ -856,7 +856,7 @@ export default function DataTable() {
                       <div>{btnIcon && <Sparkles className="h-4 w-4" />}</div>
                       <div>Interactive Action</div>
                     </div>
-                    
+
                   </Button>
                 ) : (
                   <div className="w-full relative">

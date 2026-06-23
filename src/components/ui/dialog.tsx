@@ -47,33 +47,39 @@ const Dialog = ({ open, defaultOpen, onOpenChange, children }: DialogProps) => {
 };
 Dialog.displayName = "Dialog";
 
-const DialogTrigger = ({ children }: { children: React.ReactElement<any>; asChild?: boolean }) => {
+const DialogTrigger = ({ children, asChild }: { children: React.ReactElement<any>; asChild?: boolean }) => {
   const context = React.useContext(DialogContext);
   if (!context) throw new Error("DialogTrigger must be used within Dialog");
   const { setIsOpen } = context;
 
-  return React.cloneElement(React.Children.only(<>{children}</>) as React.ReactElement<any>, {
-    onPress: () => setIsOpen(true),
-    onClick: (e: any) => {
-      children.props.onClick?.(e);
-      setIsOpen(true);
-    }
-  });
+  if (asChild) {
+    return React.cloneElement(React.Children.only(children) as React.ReactElement<any>, {
+      onPress: () => setIsOpen(true),
+      onClick: (e: any) => {
+        children.props.onClick?.(e);
+        setIsOpen(true);
+      }
+    });
+  }
+  return <>{children}</>;
 };
 DialogTrigger.displayName = "DialogTrigger";
 
-const DialogClose = ({ children }: { children: React.ReactElement<any>; asChild?: boolean }) => {
+const DialogClose = ({ children, asChild }: { children: React.ReactElement<any>; asChild?: boolean }) => {
   const context = React.useContext(DialogContext);
   if (!context) throw new Error("DialogClose must be used within Dialog");
   const { setIsOpen } = context;
 
-  return React.cloneElement(React.Children.only(<>{children}</>) as React.ReactElement<any>, {
-    onPress: () => setIsOpen(false),
-    onClick: (e: any) => {
-      children.props.onClick?.(e);
-      setIsOpen(false);
-    }
-  });
+  if (asChild) {
+    return React.cloneElement(React.Children.only(children) as React.ReactElement<any>, {
+      onPress: () => setIsOpen(false),
+      onClick: (e: any) => {
+        children.props.onClick?.(e);
+        setIsOpen(false);
+      }
+    });
+  }
+  return <>{children}</>;
 };
 DialogClose.displayName = "DialogClose";
 
