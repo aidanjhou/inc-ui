@@ -52,7 +52,7 @@ const DialogTrigger = ({ children }: { children: React.ReactElement<any>; asChil
   if (!context) throw new Error("DialogTrigger must be used within Dialog");
   const { setIsOpen } = context;
 
-  return React.cloneElement(React.Children.only(children) as React.ReactElement<any>, {
+  return React.cloneElement(React.Children.only(<>{children}</>) as React.ReactElement<any>, {
     onPress: () => setIsOpen(true),
     onClick: (e: any) => {
       children.props.onClick?.(e);
@@ -67,7 +67,7 @@ const DialogClose = ({ children }: { children: React.ReactElement<any>; asChild?
   if (!context) throw new Error("DialogClose must be used within Dialog");
   const { setIsOpen } = context;
 
-  return React.cloneElement(React.Children.only(children) as React.ReactElement<any>, {
+  return React.cloneElement(React.Children.only(<>{children}</>) as React.ReactElement<any>, {
     onPress: () => setIsOpen(false),
     onClick: (e: any) => {
       children.props.onClick?.(e);

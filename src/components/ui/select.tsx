@@ -38,7 +38,7 @@ const DialogPrimitive = {
     };
 
     if (asChild) {
-      const child = React.Children.only(children) as React.ReactElement<any>;
+      const child = React.Children.only(<>{children}</>) as React.ReactElement<any>;
       return React.cloneElement(child, {
         onClick: (e: any) => {
           child.props.onClick?.(e);
