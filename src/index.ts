@@ -97,6 +97,10 @@ export type { ChartProps, ChartType, ApexOptions } from "./components/ui/chart";
 export { Grid } from "./components/ui/grid";
 export type { GridProps } from "./components/ui/grid";
 
+// Export Switch component
+export { Switch } from "./components/ui/switch";
+export type { SwitchProps } from "./components/ui/switch";
+
 // Export Region/Country data & components
 export {
   countries,
@@ -120,3 +124,10 @@ export type { RegionSelectProps, RegionDisplayProps, RegionBadgeProps } from "./
 export { CascaderSelect } from "./components/ui/cascader-select";
 export type { CascaderSelectProps, CascaderOption } from "./components/ui/cascader-select";
 
+// Export Checkbox components
+export { Checkbox, CheckboxGroup } from "./components/ui/checkbox";
+export type { CheckboxProps } from "./components/ui/checkbox";
+
+// Export Radio components
+export { Radio, RadioGroup } from "./components/ui/radio";
+export type { RadioProps } from "./components/ui/radio";

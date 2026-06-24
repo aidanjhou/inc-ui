@@ -54,6 +54,9 @@ import {
   DialogClose
 } from "./components/ui/dialog";
 import { Input } from "./components/ui/input";
+import { Checkbox, CheckboxGroup } from "./components/ui/checkbox";
+import { Radio, RadioGroup } from "./components/ui/radio";
+import { Switch } from "./components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -224,6 +227,311 @@ export default function Demo() {
                 />
                 <span>Validation Error Border</span>
               </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CheckboxPlayground() {
+  const [checkboxTab, setCheckboxTab] = useState<"preview" | "code">("preview");
+  const [checkboxSize, setCheckboxSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2000);
+    message.success("Component source code copied to clipboard.");
+  };
+
+  const checkboxCode = `import { Checkbox, CheckboxGroup } from 'inc-ui'
+
+export default function Demo() {
+  return (
+    <CheckboxGroup label="Optional Services">
+      <Checkbox value="wifi"${checkboxSize !== "default" ? ` size="${checkboxSize}"` : ""}>Wi-Fi</Checkbox>
+      <Checkbox value="parking" description="Includes overnight parking"${checkboxSize !== "default" ? ` size="${checkboxSize}"` : ""}>Parking Space</Checkbox>
+      <Checkbox value="breakfast" isDisabled${checkboxSize !== "default" ? ` size="${checkboxSize}"` : ""}>Breakfast (Sold Out)</Checkbox>
+    </CheckboxGroup>
+  )
+}`;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Preview */}
+      <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[280px]">
+        <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
+          <Button size="sm" variant={checkboxTab === "preview" ? "secondary" : "ghost"} onClick={() => setCheckboxTab("preview")}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+          </Button>
+          <Button size="sm" variant={checkboxTab === "code" ? "secondary" : "ghost"} onClick={() => setCheckboxTab("code")}>
+            <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+          </Button>
+        </div>
+
+        {checkboxTab === "preview" ? (
+          <div className="w-full max-w-sm space-y-4 pt-8">
+            <CheckboxGroup label="Optional Services">
+              <Checkbox value="wifi" size={checkboxSize}>Wi-Fi</Checkbox>
+              <Checkbox value="parking" description="Includes overnight parking" size={checkboxSize}>Parking Space</Checkbox>
+              <Checkbox value="breakfast" isDisabled size={checkboxSize}>Breakfast (Sold Out)</Checkbox>
+            </CheckboxGroup>
+          </div>
+        ) : (
+          <div className="w-full relative pt-8">
+            <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+              <code>{checkboxCode}</code>
+            </pre>
+            <Button
+              icon
+              variant="ghost"
+              className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+              onClick={() => copyToClipboard(checkboxCode, "checkbox")}
+            >
+              {copiedText === "checkbox" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+        <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size</label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {["xs", "sm", "default", "lg", "xl", "xxl"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={checkboxSize === s ? "primary" : "secondary"}
+                  onClick={() => setCheckboxSize(s as any)}
+                  className="text-xs px-0"
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-border">
+            <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">API Reference</h3>
+            <div className="space-y-4 pt-2">
+              <div>
+                <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;CheckboxGroup /&gt;</code>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">Groups multiple checkboxes together.</p>
+              </div>
+              <div>
+                <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Checkbox value description size /&gt;</code>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">Individual checkbox item.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RadioPlayground() {
+  const [radioTab, setRadioTab] = useState<"preview" | "code">("preview");
+  const [radioSize, setRadioSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2000);
+    message.success("Component source code copied to clipboard.");
+  };
+
+  const radioCode = `import { Radio, RadioGroup } from 'inc-ui'
+
+export default function Demo() {
+  return (
+    <RadioGroup label="Notification Preference" defaultValue="email">
+      <Radio value="email" description="Receive updates via email"${radioSize !== "default" ? ` size="${radioSize}"` : ""}>Email</Radio>
+      <Radio value="sms" description="Receive updates via SMS"${radioSize !== "default" ? ` size="${radioSize}"` : ""}>SMS</Radio>
+      <Radio value="push" isDisabled${radioSize !== "default" ? ` size="${radioSize}"` : ""}>Push Notification (Not Supported)</Radio>
+    </RadioGroup>
+  )
+}`;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Preview */}
+      <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[280px]">
+        <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
+          <Button size="sm" variant={radioTab === "preview" ? "secondary" : "ghost"} onClick={() => setRadioTab("preview")}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+          </Button>
+          <Button size="sm" variant={radioTab === "code" ? "secondary" : "ghost"} onClick={() => setRadioTab("code")}>
+            <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+          </Button>
+        </div>
+
+        {radioTab === "preview" ? (
+          <div className="w-full max-w-sm space-y-4 pt-8">
+            <RadioGroup label="Notification Preference" defaultValue="email">
+              <Radio value="email" description="Receive updates via email" size={radioSize}>Email</Radio>
+              <Radio value="sms" description="Receive updates via SMS" size={radioSize}>SMS</Radio>
+              <Radio value="push" isDisabled size={radioSize}>Push Notification (Not Supported)</Radio>
+            </RadioGroup>
+          </div>
+        ) : (
+          <div className="w-full relative pt-8">
+            <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+              <code>{radioCode}</code>
+            </pre>
+            <Button
+              icon
+              variant="ghost"
+              className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+              onClick={() => copyToClipboard(radioCode, "radio")}
+            >
+              {copiedText === "radio" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+        <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size</label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {["xs", "sm", "default", "lg", "xl", "xxl"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={radioSize === s ? "primary" : "secondary"}
+                  onClick={() => setRadioSize(s as any)}
+                  className="text-xs px-0"
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-border">
+            <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">API Reference</h3>
+            <div className="space-y-4 pt-2">
+              <div>
+                <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;RadioGroup /&gt;</code>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">Groups multiple radio buttons together. Supports vertical and horizontal orientation.</p>
+              </div>
+              <div>
+                <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Radio value description size /&gt;</code>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">Individual radio item.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SwitchPlayground() {
+  const [switchTab, setSwitchTab] = useState<"preview" | "code">("preview");
+  const [switchSize, setSwitchSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2000);
+    message.success("Component source code copied to clipboard.");
+  };
+
+  const switchCode = `import { Switch } from 'inc-ui'
+
+export default function Demo() {
+  return (
+    <div className="flex flex-col gap-4">
+      <Switch${switchSize !== "default" ? ` size="${switchSize}"` : ""}>Airplane Mode</Switch>
+      <Switch description="Get notified when someone messages you"${switchSize !== "default" ? ` size="${switchSize}"` : ""}>Email Notifications</Switch>
+      <Switch isDisabled${switchSize !== "default" ? ` size="${switchSize}"` : ""}>Bluetooth (Unavailable)</Switch>
+    </div>
+  )
+}`;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Preview */}
+      <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[280px]">
+        <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
+          <Button size="sm" variant={switchTab === "preview" ? "secondary" : "ghost"} onClick={() => setSwitchTab("preview")}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+          </Button>
+          <Button size="sm" variant={switchTab === "code" ? "secondary" : "ghost"} onClick={() => setSwitchTab("code")}>
+            <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+          </Button>
+        </div>
+
+        {switchTab === "preview" ? (
+          <div className="w-full max-w-sm space-y-4 pt-8">
+            <div className="flex flex-col gap-4">
+              <Switch size={switchSize}>Airplane Mode</Switch>
+              <Switch description="Get notified when someone messages you" size={switchSize}>Email Notifications</Switch>
+              <Switch isDisabled size={switchSize}>Bluetooth (Unavailable)</Switch>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full relative pt-8">
+            <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+              <code>{switchCode}</code>
+            </pre>
+            <Button
+              icon
+              variant="ghost"
+              className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+              onClick={() => copyToClipboard(switchCode, "switch")}
+            >
+              {copiedText === "switch" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+        <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size</label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {["xs", "sm", "default", "lg", "xl", "xxl"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={switchSize === s ? "primary" : "secondary"}
+                  onClick={() => setSwitchSize(s as any)}
+                  className="text-xs px-0"
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-border">
+            <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">API Reference</h3>
+            <div className="space-y-4 pt-2">
+              <div>
+                <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Switch value description size /&gt;</code>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">Toggle switch control.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1054,7 +1362,43 @@ export default function CountrySelector() {
 
         <hr className="border-border" />
 
-        {/* 1. BUTTON SECTION */}
+        {/* 4. CHECKBOX SECTION */}
+        <section id="checkbox" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">Checkbox</h2>
+            <p className="text-muted-foreground">A control that allows the user to toggle between checked and not checked.</p>
+          </div>
+
+          <CheckboxPlayground />
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 5. RADIO SECTION */}
+        <section id="radio" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">Radio</h2>
+            <p className="text-muted-foreground">A set of checkable buttons, known as radio buttons, where no more than one of the buttons can be checked at a time.</p>
+          </div>
+
+          <RadioPlayground />
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 6. SWITCH SECTION */}
+        <section id="switch" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">Switch</h2>
+            <p className="text-muted-foreground">A control that allows the user to toggle between checked and not checked.</p>
+          </div>
+
+          <SwitchPlayground />
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 7. BUTTON SECTION */}
         <section id="buttons" className="space-y-6">
           <div className="space-y-1">
             <h2 className="text-3xl font-bold tracking-tight">Button</h2>
