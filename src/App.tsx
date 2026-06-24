@@ -249,6 +249,7 @@ function App() {
 
   // Select Playground States
   const [selectVariant, setSelectVariant] = useState<"dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal" | null>(null);
+  const [selectSize, setSelectSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
   const [selectAlign, setSelectAlign] = useState<"auto" | "start" | "end">("auto");
   const [selectValue, setSelectValue] = useState<string>("");
   const [selectManyValue, setSelectManyValue] = useState<string>("");
@@ -560,7 +561,7 @@ export default function Demo() {
       <Select
         options={frameworks}
         placeholder="Select framework..."
-        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        ${selectSize !== "default" ? `size="${selectSize}"\n        ` : ""}variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
         label="Choose Framework"
         onChange={(value, option) => console.log(value, option)}
       />
@@ -571,7 +572,7 @@ export default function Demo() {
         optionLabelKey="name"
         optionValueKey="id"
         placeholder="Select language..."
-        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        ${selectSize !== "default" ? `size="${selectSize}"\n        ` : ""}variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
         label="Choose Language"
         onChange={(value) => console.log(value)}
       />
@@ -580,7 +581,7 @@ export default function Demo() {
       <Select
         options={largeOptions}
         placeholder="Select an option (101 items)..."
-        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        ${selectSize !== "default" ? `size="${selectSize}"\n        ` : ""}variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
         label="Choose from 101 Options"
         onChange={(value) => console.log(value)}
       />
@@ -589,7 +590,7 @@ export default function Demo() {
       <Select
         options={[]}
         placeholder="Select an option (0 items)..."
-        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        ${selectSize !== "default" ? `size="${selectSize}"\n        ` : ""}variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
         label="Empty Options"
         onChange={(value) => console.log(value)}
       />
@@ -598,7 +599,7 @@ export default function Demo() {
       <Select
         options={fruits}
         placeholder="Please choose..."
-        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        ${selectSize !== "default" ? `size="${selectSize}"\n        ` : ""}variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
         translations={{
           ja: {
             cancel: "取消",
@@ -614,7 +615,7 @@ export default function Demo() {
       {/* 6. Custom renderContent (Demonstrates custom content/grid/calendar) */}
       <Select
         placeholder="Custom color grid..."
-        variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
+        ${selectSize !== "default" ? `size="${selectSize}"\n        ` : ""}variant=${selectVariant ? `"${selectVariant}"` : "undefined"}
         label="Custom renderContent Grid"
         value={selectCustomValue}
         onChange={(value) => console.log(value)}
@@ -1411,6 +1412,7 @@ export default function CountrySelector() {
                       <Select
                         options={selectOptions}
                         placeholder="Select framework..."
+                        size={selectSize}
                         variant={selectVariant || undefined}
                         value={selectValue}
                         align={selectAlign === "auto" ? undefined : selectAlign}
@@ -1436,6 +1438,7 @@ export default function CountrySelector() {
                         optionLabelKey="name"
                         optionValueKey="id"
                         placeholder="Select language..."
+                        size={selectSize}
                         variant={selectVariant || undefined}
                         align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value, option) => {
@@ -1450,6 +1453,7 @@ export default function CountrySelector() {
                       <Select
                         options={manyOptions}
                         placeholder="Select an option (101 items)..."
+                        size={selectSize}
                         variant={selectVariant || undefined}
                         value={selectManyValue}
                         align={selectAlign === "auto" ? undefined : selectAlign}
@@ -1469,6 +1473,7 @@ export default function CountrySelector() {
                       <Select
                         options={[]}
                         placeholder="Select an option (0 items)..."
+                        size={selectSize}
                         variant={selectVariant || undefined}
                         align={selectAlign === "auto" ? undefined : selectAlign}
                         onChange={(value) => {
@@ -1487,6 +1492,7 @@ export default function CountrySelector() {
                           { label: "オレンジ (Orange)", value: "orange" }
                         ]}
                         placeholder="Please choose..."
+                        size={selectSize}
                         variant={selectVariant || undefined}
                         value={selectJaValue}
                         align={selectAlign === "auto" ? undefined : selectAlign}
@@ -1513,6 +1519,7 @@ export default function CountrySelector() {
                       <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Custom renderContent (Color Grid Demo)</label>
                       <Select
                         placeholder="Custom color grid..."
+                        size={selectSize}
                         variant={selectVariant || undefined}
                         value={selectCustomValue}
                         align={selectAlign === "auto" ? undefined : selectAlign}
@@ -1556,6 +1563,7 @@ export default function CountrySelector() {
                       <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">DatetimeSelect (Pure Date & Time selector)</label>
                       <DatetimeSelect
                         placeholder="Select date and time..."
+                        size={selectSize}
                         variant={selectVariant || undefined}
                         value={datetimeValue}
                         align={selectAlign === "auto" ? undefined : selectAlign}
@@ -1613,6 +1621,23 @@ export default function CountrySelector() {
                         className="text-xs w-full"
                       >
                         {v}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Size</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["xs", "sm", "default", "lg", "xl", "xxl"] as const).map((s) => (
+                      <Button
+                        key={s}
+                        size="sm"
+                        variant={selectSize === s ? "primary" : "secondary"}
+                        onClick={() => setSelectSize(s)}
+                        className="text-xs w-full"
+                      >
+                        {s}
                       </Button>
                     ))}
                   </div>
@@ -1704,6 +1729,7 @@ export default function CountrySelector() {
                 <ul className="space-y-2 text-xs font-semibold text-muted-foreground">
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">options</code>: SelectOption[] — array of options with label/value</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">variant</code>: "dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal"</span></li>
+                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">size</code>: "xs" | "sm" | "default" | "lg" | "xl" | "xxl" (default: "default")</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">value</code>: string — controlled selected value</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">onChange</code>: (value: string, option: SelectOption) =&gt; void</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">optionLabelKey</code>: string — custom label key (default: "label")</span></li>

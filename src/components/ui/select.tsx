@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { Check, ChevronDown, X, ChevronUp, Search } from "lucide-react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 import { useUIConfig } from "../../context/UIConfigContext";
 import {
@@ -15,6 +16,25 @@ import {
   Heading as AriaHeading
 } from "react-aria-components";
 import { Button } from "./button";
+
+const selectTriggerVariants = cva(
+  "w-full flex items-center justify-between [&>span]:line-clamp-1 focus:outline-none transition-colors select-none bg-background border border-input text-foreground data-[placeholder]:text-muted-foreground cursor-pointer text-left hover:bg-primary/5 hover:border-primary hover:text-foreground hover:data-[placeholder]:text-foreground focus:bg-primary/5 focus:border-primary focus:text-foreground focus:data-[placeholder]:text-foreground disabled:bg-muted disabled:border-muted disabled:text-foreground disabled:data-[placeholder]:text-muted-foreground disabled:cursor-not-allowed",
+  {
+    variants: {
+      size: {
+        xs: "h-5 rounded-sm px-1 text-xs font-normal",
+        sm: "h-6 rounded px-1.5 text-xs font-normal",
+        default: "h-7 rounded px-2 text-xs font-medium",
+        lg: "h-8 rounded-md px-3 text-sm font-medium",
+        xl: "h-9 rounded-md px-4 text-sm font-semibold",
+        xxl: "h-10 rounded-md px-5 text-base font-semibold",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
 
 const SelectContext = React.createContext<{
   open: boolean;
@@ -95,6 +115,7 @@ export interface SelectProps {
   onOk?: (value: string) => void;
   confirmRef?: React.RefObject<(() => void) | undefined>;
   align?: "start" | "end" | "center";
+  size?: VariantProps<typeof selectTriggerVariants>["size"];
 }
 
 const defaultTranslations: Record<string, SelectTranslations> = {
@@ -151,7 +172,8 @@ export function Select(props: SelectProps) {
     showConfirm,
     onOk,
     confirmRef,
-    align
+    align,
+    size
   } = props;
 
   const [internalOpen, setInternalOpen] = React.useState(false);
@@ -408,12 +430,8 @@ export function Select(props: SelectProps) {
           ref={triggerRef}
           {...(!selectedOption ? { "data-placeholder": "" } : {})}
           className={cn(
-            "w-full h-10 flex items-center justify-between px-3 py-2 rounded-md text-sm [&>span]:line-clamp-1 focus:outline-none transition-colors select-none",
-            "bg-background border border-input text-foreground data-[placeholder]:text-muted-foreground cursor-pointer text-left",
-            "hover:bg-primary/5 hover:border-primary hover:text-foreground hover:data-[placeholder]:text-foreground",
-            "focus:bg-primary/5 focus:border-primary focus:text-foreground focus:data-[placeholder]:text-foreground",
+            selectTriggerVariants({ size }),
             open && "bg-primary/5 border-primary text-foreground data-[placeholder]:text-foreground",
-            "disabled:bg-muted disabled:border-muted disabled:text-foreground disabled:data-[placeholder]:text-muted-foreground disabled:cursor-not-allowed",
             triggerClassName
           )}
           onClick={() => {
@@ -795,12 +813,8 @@ export function Select(props: SelectProps) {
         ref={triggerRef}
         {...(!selectedOption ? { "data-placeholder": "" } : {})}
         className={cn(
-          "w-full h-10 flex items-center justify-between px-3 py-2 rounded-md text-sm [&>span]:line-clamp-1 focus:outline-none transition-colors select-none",
-          "bg-background border border-input text-foreground data-[placeholder]:text-muted-foreground cursor-pointer text-left",
-          "hover:bg-primary/5 hover:border-primary hover:text-foreground hover:data-[placeholder]:text-foreground",
-          "focus:bg-primary/5 focus:border-primary focus:text-foreground focus:data-[placeholder]:text-foreground",
+          selectTriggerVariants({ size }),
           open && "bg-primary/5 border-primary text-foreground data-[placeholder]:text-foreground",
-          "disabled:bg-muted disabled:border-muted disabled:text-foreground disabled:data-[placeholder]:text-muted-foreground disabled:cursor-not-allowed",
           triggerClassName
         )}
         onClick={() => {
@@ -840,3 +854,5 @@ export function Select(props: SelectProps) {
     </SelectContext.Provider>
   );
 }
+
+export { selectTriggerVariants };

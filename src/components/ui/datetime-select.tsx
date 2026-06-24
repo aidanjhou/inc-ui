@@ -18,6 +18,7 @@ export interface DatetimeSelectProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   align?: "start" | "end" | "center";
+  size?: "xs" | "sm" | "default" | "lg" | "xl" | "xxl";
 }
 
 const MONTH_NAMES = [
@@ -453,7 +454,8 @@ export function DatetimeSelect(props: DatetimeSelectProps) {
     label,
     open,
     onOpenChange,
-    align
+    align,
+    size
   } = props;
 
   const uiConfig = useUIConfig();
@@ -513,6 +515,7 @@ export function DatetimeSelect(props: DatetimeSelectProps) {
       onOpenChange={handleOpenChange}
       showConfirm={isActionSheet}
       align={align}
+      size={size}
       renderContent={({ value: currentVal, close }) => (
         <DatetimeSelectContent
           value={currentVal || ""}
