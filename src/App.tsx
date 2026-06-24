@@ -29,6 +29,9 @@ import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import { Select } from "./components/ui/select";
 import { DatetimeSelect } from "./components/ui/datetime-select";
+import { Calendar, RangeCalendar } from "./components/ui/calendar";
+import { CalendarSelect } from "./components/ui/calendar-select";
+import { RangeCalendarSelect } from "./components/ui/calendar-range-select";
 import { useUIConfig } from "./context/UIConfigContext";
 
 import {
@@ -65,6 +68,9 @@ import { message } from "./hooks/message";
 import { Loading } from "./components/ui/loading";
 import { Chart } from "./components/ui/chart";
 import { Grid } from "./components/ui/grid";
+import { RegionSelect, RegionDisplay, RegionBadge, countryCodeToFlag } from "./components/ui/region-select";
+import type { Region } from "./data/regions";
+import { getCountryByCode, getRegions, getCountriesByRegion } from "./data/regions";
 
 const GithubIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -74,11 +80,161 @@ const GithubIcon = (props: SVGProps<SVGSVGElement>) => (
 
 
 
+function InputPlayground() {
+  const [inputTab, setInputTab] = useState<"preview" | "code">("preview");
+  const [inputDisabled, setInputDisabled] = useState(false);
+  const [inputError, setInputError] = useState(false);
+  const [inputSize, setInputSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
+  const [inputValue, setInputValue] = useState("");
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2000);
+    message.success("Component source code copied to clipboard.");
+  };
+
+  const inputCode = `import { Input } from 'inc-ui'
+
+export default function Demo() {
+  const [value, setValue] = useState("")
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="text-sm font-bold">Standard Input</label>
+        <Input
+          placeholder="Enter some text..."
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          size="\${inputSize}"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-bold">Disabled Input</label>
+        <Input placeholder="Disabled field" disabled />
+      </div>
+      <div>
+        <label className="text-sm font-bold">Input with Error</label>
+        <Input
+          placeholder="Invalid value"
+          className="border-destructive focus-visible:ring-destructive"
+        />
+        <p className="text-xs text-destructive mt-1">Validation error message.</p>
+      </div>
+    </div>
+  )
+}`;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Preview */}
+      <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[280px]">
+        <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
+          <Button size="sm" variant={inputTab === "preview" ? "secondary" : "ghost"} onClick={() => setInputTab("preview")}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+          </Button>
+          <Button size="sm" variant={inputTab === "code" ? "secondary" : "ghost"} onClick={() => setInputTab("code")}>
+            <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+          </Button>
+        </div>
+
+        {inputTab === "preview" ? (
+          <div className="w-full max-w-sm space-y-4 pt-8">
+            <div className="space-y-2">
+              <label className="text-sm font-bold tracking-tight">Interactive Input Field</label>
+              <Input
+                placeholder="Enter some text..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                disabled={inputDisabled}
+                size={inputSize}
+                className={cn(inputError && "border-destructive focus-visible:ring-destructive")}
+              />
+              {inputError && (
+                <p className="text-xs text-destructive font-medium flex items-center">
+                  <AlertTriangle className="h-3 w-3 mr-1" /> Input validation failed. Please check criteria.
+                </p>
+              )}
+            </div>
+            {inputValue && (
+              <p className="text-xs text-muted-foreground font-semibold">Value length: {inputValue.length} chars</p>
+            )}
+          </div>
+        ) : (
+          <div className="w-full relative pt-8">
+            <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+              <code>{inputCode}</code>
+            </pre>
+            <Button
+              icon
+              variant="ghost"
+              className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+              onClick={() => copyToClipboard(inputCode, "input")}
+            >
+              {copiedText === "input" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+        <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size</label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {["xs", "sm", "default", "lg", "xl", "xxl"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={inputSize === s ? "primary" : "secondary"}
+                  onClick={() => setInputSize(s as any)}
+                  className="text-xs px-0"
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Modifiers</label>
+            <div className="flex flex-col gap-3 mt-2">
+              <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={inputDisabled}
+                  onChange={(e) => setInputDisabled(e.target.checked)}
+                  className="rounded border-input text-primary focus:ring-ring h-4 w-4"
+                />
+                <span>Disabled State</span>
+              </label>
+
+              <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={inputError}
+                  onChange={(e) => setInputError(e.target.checked)}
+                  className="rounded border-input text-primary focus:ring-ring h-4 w-4"
+                />
+                <span>Validation Error Border</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const { theme, setTheme, platform, setPlatform, language, setLanguage } = useUIConfig();
   const [buttonTab, setButtonTab] = useState<"preview" | "code">("preview");
   const [cardTab, setCardTab] = useState<"preview" | "code">("preview");
-  const [inputTab, setInputTab] = useState<"preview" | "code">("preview");
   const [selectTab, setSelectTab] = useState<"preview" | "code">("preview");
   const [modalTab, setModalTab] = useState<"preview" | "code">("preview");
   const [dropdownTab, setDropdownTab] = useState<"preview" | "code">("preview");
@@ -86,6 +242,9 @@ function App() {
   const [loadingTab, setLoadingTab] = useState<"preview" | "code">("preview");
   const [chartTab, setChartTab] = useState<"preview" | "code">("preview");
   const [gridTab, setGridTab] = useState<"preview" | "code">("preview");
+  const [regionTab, setRegionTab] = useState<"preview" | "code">("preview");
+  const [selectedRegion, setSelectedRegion] = useState<Region | "all">("all");
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // Select Playground States
@@ -96,22 +255,28 @@ function App() {
   const [selectJaValue, setSelectJaValue] = useState<string>("");
   const [selectCustomValue, setSelectCustomValue] = useState<string>("");
   const [datetimeValue, setDatetimeValue] = useState<string>("");
+  const [calendarValue, setCalendarValue] = useState<string>("");
+  const [calendarSelectValue, setCalendarSelectValue] = useState<string>("");
+  const [calendarTab, setCalendarTab] = useState<"preview" | "code">("preview");
+  const [calendarVariant, setCalendarVariant] = useState<"dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal" | null>(null);
+  const [calendarAlign, setCalendarAlign] = useState<"auto" | "start" | "end">("auto");
+  const [rangeCalendarValue, setRangeCalendarValue] = useState<string>("");
+  const [rangeCalendarSelectValue, setRangeCalendarSelectValue] = useState<string>("");
+  const [rangeCalendarTab, setRangeCalendarTab] = useState<"preview" | "code">("preview");
+  const [rangeCalendarVariant, setRangeCalendarVariant] = useState<"dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal" | null>(null);
+  const [rangeCalendarAlign, setRangeCalendarAlign] = useState<"auto" | "start" | "end">("auto");
 
   // Button Playground States
-  const [btnVariant, setBtnVariant] = useState<"primary" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "link">("primary");
-  const [btnSize, setBtnSize] = useState<"default" | "xs" | "sm" | "lg" | "icon">("default");
+  const [btnVariant, setBtnVariant] = useState<"primary" | "secondary" | "solid" | "default" | "destructive" | "ghost" | "link" | "icon">("primary");
+  const [btnSize, setBtnSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
   const [btnLoading, setBtnLoading] = useState(false);
   const [btnDisabled, setBtnDisabled] = useState(false);
-  const [btnIcon, setBtnIcon] = useState(false);
 
   // Card Playground States
   const [cardGlass, setCardGlass] = useState(true);
   const [cardHoverable, setCardHoverable] = useState(true);
 
-  // Input Playground States
-  const [inputDisabled, setInputDisabled] = useState(false);
-  const [inputError, setInputError] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  // Card Playground States
   const [loadingOpen, setLoadingOpen] = useState(false);
   const [loadingVariant, setLoadingVariant] = useState<"loading" | "success" | "error" | "warning" | "info" | "none">("loading");
   const [loadingText, setLoadingText] = useState("");
@@ -142,7 +307,7 @@ export default function Demo() {
       variant="${btnVariant}" 
       size="${btnSize}"${btnLoading ? " loading" : ""}${btnDisabled ? " disabled" : ""}
     >
-      ${btnIcon ? '<Sparkles className="mr-2 h-4 w-4" /> ' : ""}Click Me
+      Click Me
     </Button>
   )
 }`;
@@ -161,7 +326,7 @@ export default function Demo() {
         <p className="text-xs text-muted-foreground mt-1">+12% increase from last week</p>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" size="sm" className="w-full">View Details</Button>
+        <Button variant="secondary" size="sm" className="w-full">View Details</Button>
       </CardFooter>
     </Card>
   )
@@ -186,7 +351,7 @@ export default function Demo() {
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="secondary">Cancel</Button>
           </DialogClose>
           <Button>Save Settings</Button>
         </DialogFooter>
@@ -202,7 +367,7 @@ export default function Demo() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">My Account</Button>
+        <Button variant="secondary">My Account</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -317,37 +482,6 @@ export default function App() {
         </div>
       </Button>
     </>
-  )
-}`;
-
-  const inputCode = `import { Input } from 'inc-ui'
-
-export default function Demo() {
-  const [value, setValue] = useState("")
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className="text-sm font-bold">Standard Input</label>
-        <Input
-          placeholder="Enter some text..."
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-      </div>
-      <div>
-        <label className="text-sm font-bold">Disabled Input</label>
-        <Input placeholder="Disabled field" disabled />
-      </div>
-      <div>
-        <label className="text-sm font-bold">Input with Error</label>
-        <Input
-          placeholder="Invalid value"
-          className="border-destructive focus-visible:ring-destructive"
-        />
-        <p className="text-xs text-destructive mt-1">Validation error message.</p>
-      </div>
-    </div>
   )
 }`;
 
@@ -713,6 +847,23 @@ export default function DataTable() {
   return <Grid data={data} columns={columns} height={400} />
 }`;
 
+  const regionCode = `import { RegionSelect, RegionDisplay, RegionBadge } from 'inc-ui'
+
+export default function CountrySelector() {
+  const [code, setCode] = useState("")
+  const [region, setRegion] = useState("all")
+
+  return (
+    <div className="space-y-4 max-w-md">
+      <RegionSelect
+        region={region}
+        value={code}
+        onChange={(code) => setCode(code)}
+      />
+    </div>
+  )
+}`
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300 select-none">
       <MessagePrompter />
@@ -750,37 +901,43 @@ export default function DataTable() {
             <a href="#cards" className="hover:text-foreground">Cards</a>
             <a href="#inputs" className="hover:text-foreground">Inputs</a>
             <a href="#selects" className="hover:text-foreground">Selects</a>
+            <a href="#calendar" className="hover:text-foreground">Calendar</a>
+            <a href="#range-calendar" className="hover:text-foreground">Range</a>
             <a href="#modals" className="hover:text-foreground">Modals</a>
             <a href="#dropdowns" className="hover:text-foreground">Menus</a>
             <a href="#message" className="hover:text-foreground">Message</a>
             <a href="#loading" className="hover:text-foreground">Loading</a>
             <a href="#charts" className="hover:text-foreground">Charts</a>
+            <a href="#regions" className="hover:text-foreground">Regions</a>
             <a href="#grid" className="hover:text-foreground">Grid</a>
           </nav>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
-              size="icon"
+              icon
+              size="xl"
+              className="rounded-full"
               onClick={() => setPlatform(platform === "desktop" ? "mobile" : "desktop")}
-              className="rounded-full hover:bg-muted"
               title={`Switch platform (currently: ${platform})`}
             >
-              {platform === "desktop" ? <Laptop className="h-5 w-5 text-indigo-500" /> : <Smartphone className="h-5 w-5 text-indigo-500" />}
+              {platform === "desktop" ? <Laptop className="h-6 w-6 text-indigo-500" /> : <Smartphone className="h-6 w-6 text-indigo-500" />}
             </Button>
             <Button
               variant="ghost"
-              size="icon"
+              icon
+              size="xl"
+              className="rounded-full"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-full hover:bg-muted"
             >
-              {theme === "dark" ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-800" />}
+              {theme === "dark" ? <Sun className="h-6 w-6 text-amber-400" /> : <Moon className="h-6 w-6 text-slate-800" />}
             </Button>
             <Button
-              variant="outline"
-              size="icon"
+              variant="secondary"
+              icon
+              size="xl"
               asChild
-              className="hidden sm:inline-flex rounded-full"
+              className="rounded-full"
             >
               <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
                 <GithubIcon className="h-5 w-5" />
@@ -806,13 +963,13 @@ export default function DataTable() {
             An elegant React UI library providing atomic components, styled layouts, and animations. Customise themes using CSS variables and expand using Tailwind utility tags.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-            <Button size="lg" className="w-full sm:w-auto glow-primary" onClick={(e) => {
+            <Button size="xxl" className="w-full sm:w-auto glow-primary" onClick={(e) => {
               e.preventDefault();
               document.getElementById("buttons")?.scrollIntoView({ behavior: "smooth" });
             }}>
               Explore Components
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto" asChild>
+            <Button variant="secondary" size="xxl" className="w-full sm:w-auto" asChild>
               <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
                 <GithubIcon className="mr-2 h-5 w-5" /> GitHub Project
               </a>
@@ -843,28 +1000,90 @@ export default function DataTable() {
 
               <div className="flex-1 flex items-center justify-center min-h-[200px]">
                 {buttonTab === "preview" ? (
-                  <Button
-                    variant={btnVariant}
-                    size={btnSize}
-                    loading={btnLoading}
-                    disabled={btnDisabled}
-                    onClick={() => {
-                      message.success("Button clicked!");
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div>{btnIcon && <Sparkles className="h-4 w-4" />}</div>
-                      <div>Interactive Action</div>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex gap-4">
+                      <Button
+                        variant={btnVariant}
+                        size={btnSize}
+                        loading={btnLoading}
+                        disabled={btnDisabled}
+                        onClick={() => {
+                          message.success("Button clicked!");
+                        }}
+                      >
+                        {!btnLoading && <>
+                          <Sparkles className="size-[1em]" />
+                        </>}
+                        <div>Interactive Action</div>
+                      </Button>
                     </div>
-
-                  </Button>
+                    <div className="flex gap-4">
+                      <Button
+                        variant={btnVariant}
+                        icon
+                        size={btnSize}
+                        loading={btnLoading}
+                        disabled={btnDisabled}
+                        onClick={() => {
+                          message.success("Button clicked!");
+                        }}
+                      >
+                        {!btnLoading && <>
+                          <Sparkles className="size-[1em]" />
+                        </>}
+                      </Button>
+                      <Button
+                        variant={btnVariant}
+                        icon
+                        size={btnSize}
+                        className="rounded-full"
+                        loading={btnLoading}
+                        disabled={btnDisabled}
+                        onClick={() => {
+                          message.success("Button clicked!");
+                        }}
+                      >
+                        {!btnLoading && <>
+                          <Sparkles className="size-[1em]" />
+                        </>}
+                      </Button>
+                    </div>
+                    <div className="flex gap-4">
+                      <Button
+                        variant="none"
+                        size={btnSize}
+                        className={cn([
+                          btnVariant === "primary" ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90 transition-opacity" : "",
+                          btnVariant === "secondary" ? `
+                            border border-transparent bg-background text-primary
+                            [background:linear-gradient(hsl(var(--background))_0_0)_padding-box,linear-gradient(to_right,hsl(var(--primary)),hsl(var(--primary)/0.4))_border-box]
+                            hover:[background:linear-gradient(hsl(var(--primary)/0.1)_0_0)_padding-box,linear-gradient(hsl(var(--background))_0_0)_padding-box,linear-gradient(to_right,hsl(var(--primary)),hsl(var(--primary)/0.4))_border-box]
+                          ` : "",
+                          btnVariant === "solid" ? "bg-gradient-to-br from-input to-input/10 text-foreground hover:opacity-70 transition-opacity" : "",
+                          btnVariant === "default" ? `
+                            border border-transparent bg-background text-foreground
+                            [background:linear-gradient(hsl(var(--background))_0_0)_padding-box,linear-gradient(to_right,hsl(var(--input)),hsl(var(--input)/0.1))_border-box]
+                            hover:[background:linear-gradient(hsl(var(--foreground)/0.1)_0_0)_padding-box,linear-gradient(hsl(var(--background))_0_0)_padding-box,linear-gradient(to_right,hsl(var(--input)),hsl(var(--input)/0.1))_border-box]
+                          ` : "",
+                          btnVariant === "destructive" ? "bg-gradient-to-r from-destructive/10 to-destructive/5 text-destructive hover:opacity-70 transition-opacity" : "",
+                          btnVariant === "ghost" ? "text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-accent hover:to-transparent transition-all" : "",
+                          btnVariant === "link" ? "bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent hover:underline decoration-primary underline-offset-4 transition-all" : ""
+                        ])}
+                      >
+                        {!btnLoading && <>
+                          <Sparkles className="size-[1em]" />
+                        </>}
+                        <div>AI Action</div>
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="w-full relative">
                     <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
                       <code>{buttonCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(buttonCode, "btn")}
@@ -884,11 +1103,11 @@ export default function DataTable() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Variant</label>
                   <div className="grid grid-cols-3 gap-2">
-                    {["primary", "default", "destructive", "outline", "secondary", "ghost", "link"].map((v) => (
+                    {["primary", "secondary", "solid", "default", "destructive", "ghost", "link"].map((v) => (
                       <Button
                         key={v}
                         size="sm"
-                        variant={btnVariant === v ? "primary" : "outline"}
+                        variant={btnVariant === v ? "primary" : "secondary"}
                         onClick={() => setBtnVariant(v as any)}
                         className="text-xs"
                       >
@@ -901,11 +1120,11 @@ export default function DataTable() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size</label>
                   <div className="grid grid-cols-5 gap-2">
-                    {["default", "xs", "sm", "lg", "icon"].map((s) => (
+                    {["xs", "sm", "default", "lg", "xl", "xxl"].map((s) => (
                       <Button
                         key={s}
                         size="sm"
-                        variant={btnSize === s ? "primary" : "outline"}
+                        variant={btnSize === s ? "primary" : "secondary"}
                         onClick={() => setBtnSize(s as any)}
                         className="text-xs"
                       >
@@ -936,15 +1155,6 @@ export default function DataTable() {
                       />
                       <span>Disabled</span>
                     </label>
-                    <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={btnIcon}
-                        onChange={(e) => setBtnIcon(e.target.checked)}
-                        className="rounded border-input text-primary focus:ring-ring h-4 w-4"
-                      />
-                      <span>Include Icon</span>
-                    </label>
                   </div>
                 </div>
               </div>
@@ -959,9 +1169,9 @@ export default function DataTable() {
                   <GithubIcon className="h-4 w-4" /> Primary Link
                 </a>
               </Button>
-              <Button asChild variant="outline">
+              <Button asChild variant="secondary">
                 <a href="https://github.com/aidanjhou/inc-ui" target="_blank" rel="noreferrer">
-                  <GithubIcon className="h-4 w-4" /> Outline Link
+                  <GithubIcon className="h-4 w-4" /> Secondary Link
                 </a>
               </Button>
               <Button asChild variant="link">
@@ -980,7 +1190,7 @@ export default function DataTable() {
                 <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider mb-3">API Reference</h3>
                 <div className="space-y-4">
                   <div>
-                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Button variant size loading disabled asChild&gt;children&lt;/Button&gt;</code>
+                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Button variant size icon loading disabled asChild className&gt;children&lt;/Button&gt;</code>
                     <p className="text-xs text-muted-foreground mt-1 font-medium">A React component wrapping <code className="text-xs font-mono">react-aria-components/Button</code>. Built with CVA variant props for consistent styling.</p>
                   </div>
                 </div>
@@ -989,8 +1199,9 @@ export default function DataTable() {
               <div className="border-t border-border/40 pt-4">
                 <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider mb-2">Button Props</h4>
                 <ul className="space-y-2 text-xs font-semibold text-muted-foreground">
-                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">variant</code>: "primary" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" (default: "default")</span></li>
-                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">size</code>: "default" | "xs" | "sm" | "lg" | "icon" (default: "default")</span></li>
+                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">variant</code>: "primary" | "secondary" | "solid" | "default" | "destructive" | "ghost" | "link" (default: "default")</span></li>
+                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">size</code>: "xs" | "sm" | "default" | "lg" | "xl" | "xxl" (default: "default")</span></li>
+                  <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">icon</code>: boolean</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">loading</code>: boolean — shows animated spinner, disables interaction</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">disabled</code>: boolean</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">asChild</code>: boolean — renders as a child element via Radix Slot, merges styles into it</span></li>
@@ -1041,7 +1252,7 @@ export default function DataTable() {
                   </CardContent>
                   <CardFooter className="flex items-center justify-between border-t border-border/30 pt-4 mt-2">
                     <span className="text-xs text-muted-foreground font-medium">Synced 2m ago</span>
-                    <Button variant="outline" size="sm">Manage Stream</Button>
+                    <Button variant="secondary" size="sm">Manage Stream</Button>
                   </CardFooter>
                 </Card>
               ) : (
@@ -1050,7 +1261,7 @@ export default function DataTable() {
                     <code>{cardCode}</code>
                   </pre>
                   <Button
-                    size="icon"
+                    icon
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                     onClick={() => copyToClipboard(cardCode, "card")}
@@ -1140,83 +1351,7 @@ export default function DataTable() {
             <p className="text-muted-foreground">Accepts alphanumeric inputs with clear accessibility states.</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Preview */}
-            <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[280px]">
-              <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
-                <Button size="sm" variant={inputTab === "preview" ? "secondary" : "ghost"} onClick={() => setInputTab("preview")}>
-                  <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
-                </Button>
-                <Button size="sm" variant={inputTab === "code" ? "secondary" : "ghost"} onClick={() => setInputTab("code")}>
-                  <Code className="mr-1.5 h-3.5 w-3.5" /> Code
-                </Button>
-              </div>
-
-              {inputTab === "preview" ? (
-                <div className="w-full max-w-sm space-y-4 pt-8">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold tracking-tight">Interactive Input Field</label>
-                    <Input
-                      placeholder="Enter some text..."
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      disabled={inputDisabled}
-                      className={cn(inputError && "border-destructive focus-visible:ring-destructive")}
-                    />
-                    {inputError && (
-                      <p className="text-xs text-destructive font-medium flex items-center">
-                        <AlertTriangle className="h-3 w-3 mr-1" /> Input validation failed. Please check criteria.
-                      </p>
-                    )}
-                  </div>
-                  {inputValue && (
-                    <p className="text-xs text-muted-foreground font-semibold">Value length: {inputValue.length} chars</p>
-                  )}
-                </div>
-              ) : (
-                <div className="w-full relative pt-8">
-                  <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
-                    <code>{inputCode}</code>
-                  </pre>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-                    onClick={() => copyToClipboard(inputCode, "input")}
-                  >
-                    {copiedText === "input" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Controls */}
-            <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
-              <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
-
-              <div className="space-y-4">
-                <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={inputDisabled}
-                    onChange={(e) => setInputDisabled(e.target.checked)}
-                    className="rounded border-input text-primary focus:ring-ring h-4 w-4"
-                  />
-                  <span>Disabled State</span>
-                </label>
-
-                <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={inputError}
-                    onChange={(e) => setInputError(e.target.checked)}
-                    className="rounded border-input text-primary focus:ring-ring h-4 w-4"
-                  />
-                  <span>Validation Error Border</span>
-                </label>
-              </div>
-            </div>
-          </div>
+          <InputPlayground />
 
           {/* API Reference */}
           <div className="lg:col-span-12 border border-border bg-card rounded-2xl p-6 flex flex-col justify-between shadow-sm select-text">
@@ -1441,7 +1576,7 @@ export default function DataTable() {
                       <code>{selectCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(selectCode, "select")}
@@ -1463,7 +1598,7 @@ export default function DataTable() {
                   <div className="grid grid-cols-2 gap-2">
                     <Button
                       size="sm"
-                      variant={selectVariant === null ? "primary" : "outline"}
+                      variant={selectVariant === null ? "primary" : "secondary"}
                       onClick={() => setSelectVariant(null)}
                       className="text-xs w-full"
                     >
@@ -1473,7 +1608,7 @@ export default function DataTable() {
                       <Button
                         key={v}
                         size="sm"
-                        variant={selectVariant === v ? "primary" : "outline"}
+                        variant={selectVariant === v ? "primary" : "secondary"}
                         onClick={() => setSelectVariant(v)}
                         className="text-xs w-full"
                       >
@@ -1490,7 +1625,7 @@ export default function DataTable() {
                       <Button
                         key={a}
                         size="sm"
-                        variant={selectAlign === a ? "primary" : "outline"}
+                        variant={selectAlign === a ? "primary" : "secondary"}
                         onClick={() => setSelectAlign(a)}
                         className="text-xs w-full"
                       >
@@ -1508,7 +1643,7 @@ export default function DataTable() {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      variant={platform === "desktop" ? "primary" : "outline"}
+                      variant={platform === "desktop" ? "primary" : "secondary"}
                       onClick={() => setPlatform("desktop")}
                       className="flex-1 text-xs"
                     >
@@ -1516,7 +1651,7 @@ export default function DataTable() {
                     </Button>
                     <Button
                       size="sm"
-                      variant={platform === "mobile" ? "primary" : "outline"}
+                      variant={platform === "mobile" ? "primary" : "secondary"}
                       onClick={() => setPlatform("mobile")}
                       className="flex-1 text-xs"
                     >
@@ -1535,7 +1670,7 @@ export default function DataTable() {
                       <Button
                         key={lang}
                         size="sm"
-                        variant={language === lang ? "primary" : "outline"}
+                        variant={language === lang ? "primary" : "secondary"}
                         onClick={() => setLanguage(lang)}
                         className="text-xs w-full"
                       >
@@ -1580,6 +1715,357 @@ export default function DataTable() {
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">showSearch</code>: "always" | "auto" | "none" (default: "auto")</span></li>
                   <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">align</code>: "start" | "center" | "end" — dropdown alignment</span></li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 3.6. CALENDAR SECTION */}
+        <section id="calendar" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">Calendar</h2>
+            <p className="text-muted-foreground">Pure date selection calendar with month navigation and dropdown selector.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Preview */}
+            <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-between relative min-h-[300px]">
+              <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md z-10">
+                <Button size="sm" variant={calendarTab === "preview" ? "secondary" : "ghost"} onClick={() => setCalendarTab("preview")}>
+                  <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+                </Button>
+                <Button size="sm" variant={calendarTab === "code" ? "secondary" : "ghost"} onClick={() => setCalendarTab("code")}>
+                  <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+                </Button>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center min-h-[200px] w-full">
+                {calendarTab === "preview" ? (
+                  <div className="w-full max-w-xs space-y-4">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Calendar (Standalone)</label>
+                      <div className="border border-border rounded-xl p-3 bg-card shadow-sm">
+                        <Calendar
+                          value={calendarValue}
+                          onChange={(val) => {
+                            setCalendarValue(val);
+                            message.info(`Selected date: ${val}`);
+                          }}
+                        />
+                      </div>
+                      {calendarValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected: <span className="text-primary font-bold">{calendarValue}</span></p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">CalendarSelect (Date picker dropdown)</label>
+                      <CalendarSelect
+                        placeholder="Pick a date..."
+                        variant={calendarVariant || undefined}
+                        value={calendarSelectValue}
+                        align={calendarAlign === "auto" ? undefined : calendarAlign}
+                        onChange={(val) => {
+                          setCalendarSelectValue(val);
+                          message.info(`You selected: ${val}`);
+                        }}
+                        label="Date Picker"
+                      />
+                      {calendarSelectValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Date: <span className="text-primary font-bold">{calendarSelectValue}</span></p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full relative">
+                    <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+                      <code>{`import { Calendar, CalendarSelect } from "inc-ui"
+
+// Standalone Calendar (controlled)
+<Calendar
+  value={value}
+  onChange={(val) => console.log(val)}
+/>
+
+// Standalone Calendar (uncontrolled with default)
+<Calendar
+  defaultValue={String(new Date().getTime())}
+  onChange={(val) => console.log(val)}
+/>
+
+// CalendarSelect (dropdown date picker)
+<CalendarSelect
+  placeholder="Pick a date..."
+  value={value}
+  variant="dropdown"
+  align="start"
+  onChange={(val) => console.log(val)}
+/>`}</code>
+                    </pre>
+                    <Button
+                      icon
+                      variant="ghost"
+                      className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                      onClick={() => copyToClipboard(`import { Calendar, CalendarSelect } from "inc-ui"\n\n// Standalone Calendar (controlled)\n<Calendar\n  value={value}\n  onChange={(val) => console.log(val)}\n/>\n\n// Standalone Calendar (uncontrolled with default)\n<Calendar\n  defaultValue={String(new Date().getTime())}\n  onChange={(val) => console.log(val)}\n/>\n\n// CalendarSelect (dropdown date picker)\n<CalendarSelect\n  placeholder="Pick a date..."\n  value={value}\n  variant="dropdown"\n  align="start"\n  onChange={(val) => console.log(val)}\n/>`, "calendar")}
+                    >
+                      {copiedText === "calendar" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Controls + API Reference */}
+            <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+              <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">CalendarSelect Variant</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant={calendarVariant === null ? "primary" : "secondary"}
+                      onClick={() => setCalendarVariant(null)}
+                      className="text-xs w-full"
+                    >
+                      Default ({platform === "mobile" ? "picker" : "dropdown"})
+                    </Button>
+                    {(["dropdown", "picker", "action-sheet", "bottom-modal", "center-modal"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        size="sm"
+                        variant={calendarVariant === v ? "primary" : "secondary"}
+                        onClick={() => setCalendarVariant(v)}
+                        className="text-xs w-full"
+                      >
+                        {v}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dropdown Alignment</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["auto", "start", "end"] as const).map((a) => (
+                      <Button
+                        key={a}
+                        size="sm"
+                        variant={calendarAlign === a ? "primary" : "secondary"}
+                        onClick={() => setCalendarAlign(a)}
+                        className="text-xs w-full"
+                      >
+                        {a === "auto" ? "Auto (Dynamic)" : a}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-6 mt-auto">
+                <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider mb-3">API Reference</h4>
+                <div className="space-y-4">
+                  <div>
+                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Calendar value onChange /&gt;</code>
+                    <p className="text-xs text-muted-foreground mt-1 font-medium">Pure calendar with month navigation. Supports controlled/uncontrolled.</p>
+                    <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">value</code>: string — ms timestamp</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">defaultValue</code>: string — initial value</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">onChange</code>: (value: string) =&gt; void</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">className</code>: string</span></li>
+                    </ul>
+                  </div>
+                  <div className="pt-2 border-t border-border/40">
+                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;CalendarSelect placeholder variant value onChange /&gt;</code>
+                    <p className="text-xs text-muted-foreground mt-1 font-medium">Date picker dropdown combining Select with Calendar.</p>
+                    <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">variant</code>: 5 display variants</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">placeholder</code>: string</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">align</code>: "start" | "center" | "end"</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">disabled</code>: boolean</span></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 3.7. RANGE CALENDAR SECTION */}
+        <section id="range-calendar" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">RangeCalendar</h2>
+            <p className="text-muted-foreground">Range date selection calendar with month navigation and dropdown selector.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Preview */}
+            <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-between relative min-h-[300px]">
+              <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md z-10">
+                <Button size="sm" variant={rangeCalendarTab === "preview" ? "secondary" : "ghost"} onClick={() => setRangeCalendarTab("preview")}>
+                  <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+                </Button>
+                <Button size="sm" variant={rangeCalendarTab === "code" ? "secondary" : "ghost"} onClick={() => setRangeCalendarTab("code")}>
+                  <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+                </Button>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center min-h-[200px] w-full">
+                {rangeCalendarTab === "preview" ? (
+                  <div className="w-full max-w-xs space-y-4">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">RangeCalendar (Standalone)</label>
+                      <div className="border border-border rounded-xl p-3 bg-card shadow-sm">
+                        <RangeCalendar
+                          value={rangeCalendarValue}
+                          onChange={(val) => {
+                            setRangeCalendarValue(val);
+                            message.info(`Selected range: ${val}`);
+                          }}
+                        />
+                      </div>
+                      {rangeCalendarValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Range: <span className="text-primary font-bold">{rangeCalendarValue}</span></p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-border/40">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">RangeCalendarSelect (Range picker dropdown)</label>
+                      <RangeCalendarSelect
+                        placeholder="Pick a date range..."
+                        variant={rangeCalendarVariant || undefined}
+                        value={rangeCalendarSelectValue}
+                        align={rangeCalendarAlign === "auto" ? undefined : rangeCalendarAlign}
+                        onChange={(val) => {
+                          setRangeCalendarSelectValue(val);
+                          message.info(`You selected range: ${val}`);
+                        }}
+                        label="Date Range Picker"
+                      />
+                      {rangeCalendarSelectValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Range: <span className="text-primary font-bold">{rangeCalendarSelectValue}</span></p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full relative">
+                    <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+                      <code>{`import { RangeCalendar, RangeCalendarSelect, formatDateRange } from "inc-ui"
+
+// Standalone RangeCalendar (controlled)
+<RangeCalendar
+  value={value}
+  onChange={(val) => console.log(val)}
+/>
+
+// Standalone RangeCalendar (uncontrolled with default)
+<RangeCalendar
+  defaultValue={\`\${startTs},\${endTs}\`}
+  onChange={(val) => console.log(val)}
+/>
+
+// RangeCalendarSelect (dropdown range date picker)
+<RangeCalendarSelect
+  placeholder="Pick a date range..."
+  value={value}
+  variant="dropdown"
+  align="start"
+  onChange={(val) => console.log(val)}
+/>
+
+// Format range for display
+formatDateRange(value) // => "2024-06-18 - 2024-06-25"`}</code>
+                    </pre>
+                    <Button
+                      icon
+                      variant="ghost"
+                      className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                      onClick={() => copyToClipboard(`import { RangeCalendar, RangeCalendarSelect, formatDateRange } from "inc-ui"\n\n// Standalone RangeCalendar (controlled)\n<RangeCalendar\n  value={value}\n  onChange={(val) => console.log(val)}\n/>\n\n// Standalone RangeCalendar (uncontrolled with default)\n<RangeCalendar\n  defaultValue={\`\${startTs},\${endTs}\`}\n  onChange={(val) => console.log(val)}\n/>\n\n// RangeCalendarSelect (dropdown range date picker)\n<RangeCalendarSelect\n  placeholder="Pick a date range..."\n  value={value}\n  variant="dropdown"\n  align="start"\n  onChange={(val) => console.log(val)}\n/>\n\n// Format range for display\nformatDateRange(value) // => "2024-06-18 - 2024-06-25"`, "rangeCalendar")}
+                    >
+                      {copiedText === "rangeCalendar" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Controls + API Reference */}
+            <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+              <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">RangeCalendarSelect Variant</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant={rangeCalendarVariant === null ? "primary" : "secondary"}
+                      onClick={() => setRangeCalendarVariant(null)}
+                      className="text-xs w-full"
+                    >
+                      Default ({platform === "mobile" ? "picker" : "dropdown"})
+                    </Button>
+                    {(["dropdown", "picker", "action-sheet", "bottom-modal", "center-modal"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        size="sm"
+                        variant={rangeCalendarVariant === v ? "primary" : "secondary"}
+                        onClick={() => setRangeCalendarVariant(v)}
+                        className="text-xs w-full"
+                      >
+                        {v}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dropdown Alignment</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["auto", "start", "end"] as const).map((a) => (
+                      <Button
+                        key={a}
+                        size="sm"
+                        variant={rangeCalendarAlign === a ? "primary" : "secondary"}
+                        onClick={() => setRangeCalendarAlign(a)}
+                        className="text-xs w-full"
+                      >
+                        {a === "auto" ? "Auto (Dynamic)" : a}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-6 mt-auto">
+                <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider mb-3">API Reference</h4>
+                <div className="space-y-4">
+                  <div>
+                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;RangeCalendar value onChange /&gt;</code>
+                    <p className="text-xs text-muted-foreground mt-1 font-medium">Range calendar with month navigation and anchor-based selection.</p>
+                    <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">value</code>: string — "startTs,endTs"</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">defaultValue</code>: string — initial range</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">onChange</code>: (value: string) =&gt; void</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">className</code>: string</span></li>
+                    </ul>
+                  </div>
+                  <div className="pt-2 border-t border-border/40">
+                    <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;RangeCalendarSelect placeholder variant value onChange /&gt;</code>
+                    <p className="text-xs text-muted-foreground mt-1 font-medium">Range date picker dropdown combining Select with RangeCalendar.</p>
+                    <ul className="mt-2 space-y-1 text-xs font-semibold text-muted-foreground">
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">variant</code>: 5 display variants</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">placeholder</code>: string</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">align</code>: "start" | "center" | "end"</span></li>
+                      <li className="flex items-start"><CheckCircle className="h-3 w-3 text-emerald-500 mr-1.5 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">disabled</code>: boolean</span></li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1635,7 +2121,7 @@ export default function DataTable() {
                       </div>
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button variant="outline">Cancel</Button>
+                          <Button variant="secondary">Cancel</Button>
                         </DialogClose>
                         <DialogClose asChild>
                           <Button type="submit" onClick={() => {
@@ -1653,7 +2139,7 @@ export default function DataTable() {
                     <code>{dialogCode}</code>
                   </pre>
                   <Button
-                    size="icon"
+                    icon
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                     onClick={() => copyToClipboard(dialogCode, "dialog")}
@@ -1728,7 +2214,7 @@ export default function DataTable() {
                 <div className="flex flex-col items-center space-y-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline">Options Menu</Button>
+                      <Button variant="secondary">Options Menu</Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
                       <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -1767,7 +2253,7 @@ export default function DataTable() {
                     <code>{dropdownCode}</code>
                   </pre>
                   <Button
-                    size="icon"
+                    icon
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                     onClick={() => copyToClipboard(dropdownCode, "dropdown")}
@@ -1845,7 +2331,7 @@ export default function DataTable() {
                 <div className="space-y-4 w-full">
                   <div className="flex flex-wrap items-center justify-center gap-3">
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => {
                         message("Copied to clipboard.");
                       }}
@@ -1857,7 +2343,7 @@ export default function DataTable() {
                     </Button>
 
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => {
                         message.success("Profile updated.", {
                           description: "Your changes have been saved successfully.",
@@ -1872,7 +2358,7 @@ export default function DataTable() {
                     </Button>
 
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => {
                         message.warning("Storage almost full.", {
                           description: "Repository storage reaches 89% capacity.",
@@ -1887,7 +2373,7 @@ export default function DataTable() {
                     </Button>
 
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => {
                         message.error("Build failed.", {
                           description: "Import symbol not found on compile. Check src/index.ts line 42.",
@@ -1902,7 +2388,7 @@ export default function DataTable() {
                     </Button>
 
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => {
                         message.info("New version available.", {
                           description: "inc-ui v0.2.0 has been released. See changelog for details.",
@@ -1917,7 +2403,7 @@ export default function DataTable() {
                     </Button>
 
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => {
                         const id = message.loading("Loading data process...", { duration: 0 });
                         setTimeout(() => {
@@ -1943,7 +2429,7 @@ export default function DataTable() {
                     <code>{messageCode}</code>
                   </pre>
                   <Button
-                    size="icon"
+                    icon
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                     onClick={() => copyToClipboard(messageCode, "message")}
@@ -2031,7 +2517,7 @@ export default function DataTable() {
                   <div className="flex flex-wrap items-center justify-center gap-3">
                     {/* Loading → Success */}
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       className="border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-500"
                       onClick={() => {
                         setLoadingVariant("loading");
@@ -2051,7 +2537,7 @@ export default function DataTable() {
 
                     {/* Loading → Error */}
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       className="border-red-500/30 hover:bg-red-500/10 hover:text-red-500"
                       onClick={() => {
                         setLoadingVariant("loading");
@@ -2071,7 +2557,7 @@ export default function DataTable() {
 
                     {/* Loading → Warning */}
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       className="border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-500"
                       onClick={() => {
                         setLoadingVariant("loading");
@@ -2091,7 +2577,7 @@ export default function DataTable() {
 
                     {/* Loading → Info */}
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       className="border-blue-500/30 hover:bg-blue-500/10 hover:text-blue-500"
                       onClick={() => {
                         setLoadingVariant("loading");
@@ -2111,7 +2597,7 @@ export default function DataTable() {
 
                     {/* Loading → None */}
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       className="border-border hover:bg-muted/50"
                       onClick={() => {
                         setLoadingVariant("loading");
@@ -2137,7 +2623,7 @@ export default function DataTable() {
                     <code>{loadingCode}</code>
                   </pre>
                   <Button
-                    size="icon"
+                    icon
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                     onClick={() => copyToClipboard(loadingCode, "loading")}
@@ -2448,7 +2934,7 @@ export default function DataTable() {
                       <code>{barChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(barChartCode, "chart-bar")}
@@ -2463,7 +2949,7 @@ export default function DataTable() {
                       <code>{lineChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(lineChartCode, "chart-line")}
@@ -2478,7 +2964,7 @@ export default function DataTable() {
                       <code>{areaChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(areaChartCode, "chart-area")}
@@ -2493,7 +2979,7 @@ export default function DataTable() {
                       <code>{pieChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(pieChartCode, "chart-pie")}
@@ -2508,7 +2994,7 @@ export default function DataTable() {
                       <code>{donutChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(donutChartCode, "chart-donut")}
@@ -2523,7 +3009,7 @@ export default function DataTable() {
                       <code>{heatmapChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(heatmapChartCode, "chart-heatmap")}
@@ -2538,7 +3024,7 @@ export default function DataTable() {
                       <code>{rangeBarChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(rangeBarChartCode, "chart-rangebar")}
@@ -2553,7 +3039,7 @@ export default function DataTable() {
                       <code>{swimlaneChartCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(swimlaneChartCode, "chart-swimlane")}
@@ -2568,7 +3054,7 @@ export default function DataTable() {
                       <code>{gridCode}</code>
                     </pre>
                     <Button
-                      size="icon"
+                      icon
                       variant="ghost"
                       className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                       onClick={() => copyToClipboard(gridCode, "chart-grid")}
@@ -2624,7 +3110,163 @@ export default function DataTable() {
 
         <hr className="border-border" />
 
-        {/* 9. GRID SECTION */}
+        {/* 9. REGION SECTION */}
+        <section id="regions" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">Regions</h2>
+            <p className="text-muted-foreground">ISO 3166-1 country data spanning Asia, Europe, Africa, North America, Latin America, and Oceania. Browse and select countries with the <code className="font-mono bg-muted px-1 py-0.5 rounded text-primary text-xs">RegionSelect</code> component.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Preview */}
+            <div className="lg:col-span-12 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col relative min-h-[400px]">
+              <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md z-10">
+                <Button size="sm" variant={regionTab === "preview" ? "secondary" : "ghost"} onClick={() => setRegionTab("preview")}>
+                  <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+                </Button>
+                <Button size="sm" variant={regionTab === "code" ? "secondary" : "ghost"} onClick={() => setRegionTab("code")}>
+                  <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+                </Button>
+              </div>
+
+              {regionTab === "preview" ? (
+                <div className="w-full max-w-xl space-y-6">
+                  {/* Region filter buttons */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Filter by Region</label>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant={selectedRegion === "all" ? "secondary" : "ghost"}
+                        onClick={() => { setSelectedRegion("all"); setSelectedCountry(""); }}
+                      >
+                        All
+                      </Button>
+                      {getRegions().map((r) => (
+                        <Button
+                          key={r}
+                          size="sm"
+                          variant={selectedRegion === r ? "secondary" : "ghost"}
+                          onClick={() => { setSelectedRegion(r); setSelectedCountry(""); }}
+                        >
+                          <RegionBadge region={r} className="bg-transparent dark:bg-transparent p-0 text-inherit dark:text-inherit" />
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* RegionSelect */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">RegionSelect</label>
+                    <RegionSelect
+                      region={selectedRegion}
+                      value={selectedCountry}
+                      onChange={(code) => setSelectedCountry(code)}
+                      placeholder="Select a country..."
+                      showSearch="auto"
+                    />
+                  </div>
+
+                  {/* Selected country info */}
+                  {selectedCountry && (() => {
+                    const found = getCountryByCode(selectedCountry);
+                    return found ? (
+                      <div className="flex items-center justify-between border border-border rounded-xl p-4 bg-card/60">
+                        <RegionDisplay country={found} showFlag showCode showRegion />
+                      </div>
+                    ) : null;
+                  })()}
+
+                  {/* Region breakdown */}
+                  <div className="border-t border-border/40 pt-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Countries by Region</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {getRegions().map((r) => {
+                        const list = getCountriesByRegion(r);
+                        return (
+                          <div key={r} className="border border-border rounded-xl p-3 bg-card/40 space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <RegionBadge region={r} />
+                              <span className="text-[10px] font-mono text-muted-foreground">{list.length}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground line-clamp-4 space-y-0.5">
+                              {list.slice(0, 8).map((c) => (
+                                <div key={c.code} className="truncate">
+                                  {countryCodeToFlag(c.code)} {c.name}
+                                </div>
+                              ))}
+                              {list.length > 8 && (
+                                <div className="text-muted-foreground/60 pt-0.5">+{list.length - 8} more</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full space-y-4">
+                  <div className="relative">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">RegionSelect &amp; RegionDisplay</h3>
+                    <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+                      <code>{regionCode}</code>
+                    </pre>
+                    <Button
+                      icon
+                      variant="ghost"
+                      className="absolute top-8 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                      onClick={() => copyToClipboard(regionCode, "region")}
+                    >
+                      {copiedText === "region" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* API Reference */}
+            <div className="lg:col-span-12 border border-border bg-card rounded-2xl p-6 flex flex-col justify-between shadow-sm select-text">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider mb-3">API Reference</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;RegionSelect region value onChange /&gt;</code>
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">A country selector with flag support, ISO codes, and region filtering. Built on top of <code className="font-mono bg-muted px-1 py-0.5 rounded text-primary">&lt;Select /&gt;</code>.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-border/40 pt-4">
+                  <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider mb-2">RegionSelect Props</h4>
+                  <ul className="space-y-2 text-xs font-semibold text-muted-foreground">
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">region</code>: Region | "all" — filter by region (default: "all")</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">value</code>: string — ISO alpha-2 country code</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">onChange</code>: (code: string, country: Country) =&gt; void</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">placeholder</code>: string (default: "Select country...")</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">variant</code>: dropdown | picker | action-sheet | bottom-modal | center-modal</span></li>
+                  </ul>
+                </div>
+
+                <div className="border-t border-border/40 pt-4">
+                  <h4 className="font-bold text-xs text-muted-foreground uppercase tracking-wider mb-2">Utility Exports</h4>
+                  <ul className="space-y-2 text-xs font-semibold text-muted-foreground">
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">RegionDisplay</code> — renders flag + country name + optional code/region badge</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">RegionBadge</code> — colored badge for a region name</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">countryCodeToFlag</code> — converts ISO alpha-2 to flag emoji</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">countries</code> — full ISO 3166-1 country array</span></li>
+                    <li className="flex items-start"><CheckCircle className="h-3.5 w-3.5 text-emerald-500 mr-2 mt-0.5 shrink-0" /> <span><code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">getCountriesByRegion</code>, <code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">getCountryByCode</code>, <code className="font-mono bg-muted px-1 py-0.2 rounded text-primary">getCountryByAlpha3</code></span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 10. GRID SECTION */}
         <section id="grid" className="space-y-6">
           <div className="space-y-1">
             <h2 className="text-3xl font-bold tracking-tight">Grid</h2>
@@ -2675,7 +3317,7 @@ export default function DataTable() {
                     <code>{gridCode}</code>
                   </pre>
                   <Button
-                    size="icon"
+                    icon
                     variant="ghost"
                     className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                     onClick={() => copyToClipboard(gridCode, "grid-main")}

@@ -272,7 +272,7 @@ function DatetimeSelectContent({
             <div className="flex items-center gap-0.5">
               <Button
                 variant="ghost"
-                size="icon"
+                icon size="sm"
                 className="h-7 w-7 p-0 rounded-md"
                 onClick={handlePrevMonth}
               >
@@ -280,7 +280,7 @@ function DatetimeSelectContent({
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+                icon size="sm"
                 className="h-7 w-7 p-0 rounded-md"
                 onClick={handleNextMonth}
               >

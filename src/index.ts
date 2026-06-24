@@ -73,6 +73,22 @@ export type { SelectProps, SelectOption } from "./components/ui/select";
 export { DatetimeSelect } from "./components/ui/datetime-select";
 export type { DatetimeSelectProps } from "./components/ui/datetime-select";
 
+// Export Calendar component
+export { Calendar } from "./components/ui/calendar";
+export type { CalendarProps } from "./components/ui/calendar";
+
+// Export CalendarSelect component
+export { CalendarSelect } from "./components/ui/calendar-select";
+export type { CalendarSelectProps } from "./components/ui/calendar-select";
+
+// Export RangeCalendar component
+export { RangeCalendar, formatDateRange } from "./components/ui/calendar";
+export type { RangeCalendarProps } from "./components/ui/calendar";
+
+// Export RangeCalendarSelect component
+export { RangeCalendarSelect } from "./components/ui/calendar-range-select";
+export type { RangeCalendarSelectProps } from "./components/ui/calendar-range-select";
+
 // Export Chart component
 export { Chart } from "./components/ui/chart";
 export type { ChartProps, ChartType, ApexOptions } from "./components/ui/chart";
@@ -80,4 +96,23 @@ export type { ChartProps, ChartType, ApexOptions } from "./components/ui/chart";
 // Export Grid component
 export { Grid } from "./components/ui/grid";
 export type { GridProps } from "./components/ui/grid";
+
+// Export Region/Country data & components
+export {
+  countries,
+  regions,
+  getRegions,
+  getCountriesByRegion,
+  getCountryByCode,
+  getCountryByAlpha3,
+} from "./data/regions";
+export type { Country, Region } from "./data/regions";
+
+export {
+  RegionSelect,
+  RegionDisplay,
+  RegionBadge,
+  countryCodeToFlag,
+} from "./components/ui/region-select";
+export type { RegionSelectProps, RegionDisplayProps, RegionBadgeProps } from "./components/ui/region-select";
 

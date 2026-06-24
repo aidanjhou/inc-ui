@@ -12,11 +12,11 @@
     --popover-foreground: 222 47% 5%;
     --primary: 212 100% 48%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --secondary: 225 100% 80%;
+    --secondary-foreground: 212 100% 40%;
+    --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 210 40% 92%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -64,8 +64,8 @@
 @layer base {
   * {
     @apply border-border;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, box-shadow 0.2s ease;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
@@ -87,6 +87,7 @@
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(51, 65, 85, 0.5);
 }
+
 
 .glass-card {
   background: rgba(255, 255, 255, 0.45);
@@ -112,15 +113,16 @@
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.25);
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.45);
 }
-
-/* Message (Toast) — themed via Tailwind in <Message /> component */

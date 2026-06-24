@@ -139,7 +139,7 @@ const DialogContent = React.forwardRef<
               {typeof children === "function" ? children({ close }) : children}
               <Button
                 variant="ghost"
-                size="icon"
+                icon size="sm"
                 className="absolute right-4 top-4 h-7 w-7 p-0 rounded-md text-muted-foreground hover:text-foreground"
                 onPress={() => setIsOpen(false)}
               >

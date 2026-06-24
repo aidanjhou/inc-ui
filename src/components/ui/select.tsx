@@ -346,7 +346,7 @@ export function Select(props: SelectProps) {
       <div className="flex items-center gap-0.5 border-l border-border pl-1.5">
         <Button
           variant="ghost"
-          size="icon"
+          icon size="sm"
           className="h-6 w-6 p-0 rounded text-muted-foreground hover:text-foreground"
           onPointerDown={(e) => e.preventDefault()}
           onClick={handlePrevMatch}
@@ -356,7 +356,7 @@ export function Select(props: SelectProps) {
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          icon size="sm"
           className="h-6 w-6 p-0 rounded text-muted-foreground hover:text-foreground"
           onPointerDown={(e) => e.preventDefault()}
           onClick={handleNextMatch}
@@ -471,6 +471,7 @@ export function Select(props: SelectProps) {
                     <AriaMenuItem
                       key={optionVal}
                       id={optionVal}
+                      data-value={optionVal}
                       textValue={optionLabel}
                       ref={isSelected ? selectedRef : undefined}
                       className={cn(
@@ -653,7 +654,7 @@ export function Select(props: SelectProps) {
           <DialogPrimitive.CloseTrigger asChild>
             <Button
               variant="ghost"
-              size="icon"
+              icon size="sm"
               className="h-7 w-7 p-0 rounded-md text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
@@ -725,7 +726,7 @@ export function Select(props: SelectProps) {
           <DialogPrimitive.CloseTrigger asChild>
             <Button
               variant="ghost"
-              size="icon"
+              icon size="sm"
               className="h-7 w-7 p-0 rounded-md text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
