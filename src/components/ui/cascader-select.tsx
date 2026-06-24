@@ -77,18 +77,26 @@ function CascaderSelectContent({
   const activeCol1Ref = React.useRef<HTMLButtonElement>(null);
   const activeCol2Ref = React.useRef<HTMLButtonElement>(null);
 
+  const prevValueRef = React.useRef(value);
+
   React.useEffect(() => {
+    const valueChanged = value !== prevValueRef.current;
+    prevValueRef.current = value;
+
     if (value) {
       const path = findPath(value, options);
       setFullPath(path || [value]);
-      if (path && path.length > 0) {
-        setTempPath([path[0]]);
-      } else {
-        setTempPath([value]);
-      }
+      setTempPath(prev => {
+        if (valueChanged || prev.length === 0 || (prev.length === 1 && String(prev[0]) === String(value))) {
+          return (path && path.length > 0) ? [path[0]] : [value];
+        }
+        return prev;
+      });
     } else {
       setFullPath([]);
-      setTempPath([]);
+      if (valueChanged) {
+        setTempPath([]);
+      }
     }
   }, [value, options]);
 
