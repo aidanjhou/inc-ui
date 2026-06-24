@@ -32,6 +32,7 @@ import { DatetimeSelect } from "./components/ui/datetime-select";
 import { Calendar, RangeCalendar } from "./components/ui/calendar";
 import { CalendarSelect } from "./components/ui/calendar-select";
 import { RangeCalendarSelect } from "./components/ui/calendar-range-select";
+import { CascaderSelect, type CascaderOption } from "./components/ui/cascader-select";
 import { useUIConfig } from "./context/UIConfigContext";
 
 import {
@@ -266,6 +267,13 @@ function App() {
   const [rangeCalendarTab, setRangeCalendarTab] = useState<"preview" | "code">("preview");
   const [rangeCalendarVariant, setRangeCalendarVariant] = useState<"dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal" | null>(null);
   const [rangeCalendarAlign, setRangeCalendarAlign] = useState<"auto" | "start" | "end">("auto");
+
+  // Cascader Playground States
+  const [cascaderValue, setCascaderValue] = useState<string>("");
+  const [cascaderTab, setCascaderTab] = useState<"preview" | "code">("preview");
+  const [cascaderVariant, setCascaderVariant] = useState<"dropdown" | "picker" | "action-sheet" | "bottom-modal" | "center-modal" | null>(null);
+  const [cascaderSize, setCascaderSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
+  const [cascaderAlign, setCascaderAlign] = useState<"auto" | "start" | "end">("auto");
 
   // Button Playground States
   const [btnVariant, setBtnVariant] = useState<"primary" | "secondary" | "solid" | "default" | "destructive" | "ghost" | "link" | "icon">("primary");
@@ -642,6 +650,71 @@ export default function Demo() {
   )
 }`;
 
+  const cascaderOptions: CascaderOption[] = [
+    {
+      value: "frontend",
+      label: "Frontend",
+      children: [
+        {
+          value: "react",
+          label: "React",
+          children: [
+            { value: "nextjs", label: "Next.js" },
+            { value: "vite", label: "Vite" }
+          ]
+        },
+        { value: "vue", label: "Vue" }
+      ]
+    },
+    {
+      value: "backend",
+      label: "Backend",
+      children: [
+        { value: "node", label: "Node.js" },
+        { value: "python", label: "Python" }
+      ]
+    }
+  ];
+
+  const cascaderCode = `import { CascaderSelect } from "inc-ui"
+
+export default function Demo() {
+  const options = [
+    {
+      value: "frontend",
+      label: "Frontend",
+      children: [
+        {
+          value: "react",
+          label: "React",
+          children: [
+            { value: "nextjs", label: "Next.js" },
+            { value: "vite", label: "Vite" }
+          ]
+        },
+        { value: "vue", label: "Vue" }
+      ]
+    },
+    {
+      value: "backend",
+      label: "Backend",
+      children: [
+        { value: "node", label: "Node.js" },
+        { value: "python", label: "Python" }
+      ]
+    }
+  ];
+
+  return (
+    <CascaderSelect
+      options={options}
+      placeholder="Select technology..."
+      variant="dropdown"
+      onChange={(val) => console.log(val)}
+    />
+  )
+}`;
+
   // Chart code strings
   const barChartCode = `import { Chart } from 'inc-ui'
 
@@ -902,6 +975,7 @@ export default function CountrySelector() {
             <a href="#cards" className="hover:text-foreground">Cards</a>
             <a href="#inputs" className="hover:text-foreground">Inputs</a>
             <a href="#selects" className="hover:text-foreground">Selects</a>
+            <a href="#cascader" className="hover:text-foreground">Cascader</a>
             <a href="#calendar" className="hover:text-foreground">Calendar</a>
             <a href="#range-calendar" className="hover:text-foreground">Range</a>
             <a href="#modals" className="hover:text-foreground">Modals</a>
@@ -1748,7 +1822,137 @@ export default function CountrySelector() {
 
         <hr className="border-border" />
 
-        {/* 3.6. CALENDAR SECTION */}
+        {/* 3.6. CASCADER SELECT SECTION */}
+        <section id="cascader" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">CascaderSelect</h2>
+            <p className="text-muted-foreground">Select from a hierarchical set of options with multi-level dropdowns.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Preview */}
+            <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-between relative min-h-[300px]">
+              <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md z-10">
+                <Button size="sm" variant={cascaderTab === "preview" ? "secondary" : "ghost"} onClick={() => setCascaderTab("preview")}>
+                  <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+                </Button>
+                <Button size="sm" variant={cascaderTab === "code" ? "secondary" : "ghost"} onClick={() => setCascaderTab("code")}>
+                  <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+                </Button>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center min-h-[200px] w-full">
+                {cascaderTab === "preview" ? (
+                  <div className="w-full max-w-xs space-y-4">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Hierarchical Select</label>
+                      <CascaderSelect
+                        options={cascaderOptions}
+                        placeholder="Select technology..."
+                        variant={cascaderVariant || undefined}
+                        size={cascaderSize}
+                        value={cascaderValue}
+                        align={cascaderAlign === "auto" ? undefined : cascaderAlign}
+                        onChange={(val) => {
+                          setCascaderValue(String(val));
+                          message.info(`You selected: ${val}`);
+                        }}
+                        label="Technology Picker"
+                      />
+                      {cascaderValue && (
+                        <p className="text-xs text-muted-foreground font-semibold mt-1.5">Selected Value: <span className="text-primary font-bold">{cascaderValue}</span></p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full relative">
+                    <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+                      <code>{cascaderCode}</code>
+                    </pre>
+                    <Button
+                      icon
+                      variant="ghost"
+                      className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+                      onClick={() => copyToClipboard(cascaderCode, "cascader")}
+                    >
+                      {copiedText === "cascader" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+              <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Cascader Variant</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant={cascaderVariant === null ? "primary" : "secondary"}
+                      onClick={() => setCascaderVariant(null)}
+                      className="text-xs w-full"
+                    >
+                      Default ({platform === "mobile" ? "picker" : "dropdown"})
+                    </Button>
+                    {(["dropdown", "picker", "action-sheet", "bottom-modal", "center-modal"] as const).map((v) => (
+                      <Button
+                        key={v}
+                        size="sm"
+                        variant={cascaderVariant === v ? "primary" : "secondary"}
+                        onClick={() => setCascaderVariant(v)}
+                        className="text-xs w-full"
+                      >
+                        {v}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Cascader Size</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["xs", "sm", "default", "lg", "xl", "xxl"] as const).map((s) => (
+                      <Button
+                        key={s}
+                        size="sm"
+                        variant={cascaderSize === s ? "primary" : "secondary"}
+                        onClick={() => setCascaderSize(s)}
+                        className="text-xs w-full"
+                      >
+                        {s}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dropdown Alignment</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["auto", "start", "end"] as const).map((a) => (
+                      <Button
+                        key={a}
+                        size="sm"
+                        variant={cascaderAlign === a ? "primary" : "secondary"}
+                        onClick={() => setCascaderAlign(a)}
+                        className="text-xs w-full"
+                      >
+                        {a === "auto" ? "Auto" : a}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="border-border" />
+
+        {/* 3.7. CALENDAR SECTION */}
         <section id="calendar" className="space-y-6">
           <div className="space-y-1">
             <h2 className="text-3xl font-bold tracking-tight">Calendar</h2>

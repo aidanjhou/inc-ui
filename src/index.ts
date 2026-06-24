@@ -116,3 +116,7 @@ export {
 } from "./components/ui/region-select";
 export type { RegionSelectProps, RegionDisplayProps, RegionBadgeProps } from "./components/ui/region-select";
 
+// Export CascaderSelect component
+export { CascaderSelect } from "./components/ui/cascader-select";
+export type { CascaderSelectProps, CascaderOption } from "./components/ui/cascader-select";
+
