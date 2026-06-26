@@ -5,7 +5,8 @@ import {
   CheckboxGroup as AriaCheckboxGroup,
   type CheckboxFieldProps as AriaCheckboxFieldProps,
   type CheckboxGroupProps as AriaCheckboxGroupProps,
-  Label
+  Label,
+  CheckboxGroupStateContext
 } from "react-aria-components"
 import { Check, Minus, X } from "lucide-react"
 import { cn } from "../../lib/utils"
@@ -100,6 +101,7 @@ const getNextValue = (
 const Checkbox = React.forwardRef<HTMLDivElement, CheckboxProps>(
   ({ className, children, description, size = "default", value, defaultValue, onChange, allowInverse = false, allowPartial = false, pure = false, ...props }, ref) => {
     const config = checkboxSizeConfig[size] || checkboxSizeConfig.default;
+    const groupState = React.useContext(CheckboxGroupStateContext);
 
     // Check if we are in multi-state mode (either allowInverse/allowPartial is true, or value/defaultValue matches CheckboxValue)
     const isMultiState = React.useMemo(() => {
@@ -115,31 +117,91 @@ const Checkbox = React.forwardRef<HTMLDivElement, CheckboxProps>(
 
     const currentValue = React.useMemo<CheckboxValue>(() => {
       if (!isMultiState) return "";
+      if (groupState) {
+        if (groupState.value.includes(value)) return "1";
+        if (groupState.value.includes(`${value}-partial`)) return "0.5";
+        if (groupState.value.includes(`${value}-inverse`) || groupState.value.includes("0")) return "0";
+        return "";
+      }
       const val = value !== undefined ? value : uncontrolledValue;
       return (val === "" || val === "0" || val === "0.5" || val === "1") ? val : "";
-    }, [isMultiState, value, uncontrolledValue]);
+    }, [isMultiState, value, uncontrolledValue, groupState?.value]);
 
-    const handleAriaChange = React.useCallback(() => {
+    const handleToggle = React.useCallback((e: React.PointerEvent | React.MouseEvent) => {
       if (!isMultiState) return;
-      const nextValue = getNextValue(currentValue, allowInverse, allowPartial);
-      if (value === undefined) {
-        setUncontrolledValue(nextValue);
+      if ('button' in e && e.button !== 0) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Focus the checkbox button for accessibility
+      const buttonEl = (e.currentTarget as HTMLElement).querySelector('[role="checkbox"]');
+      if (buttonEl instanceof HTMLElement) {
+        buttonEl.focus();
       }
-      onChange?.(nextValue);
-    }, [isMultiState, currentValue, allowInverse, allowPartial, value, onChange]);
+
+      const nextValue = getNextValue(currentValue, allowInverse, allowPartial);
+
+      if (groupState) {
+        const nextGroupValue = groupState.value.filter(
+          v => v !== value && v !== `${value}-partial` && v !== `${value}-inverse` && v !== "0"
+        );
+        if (nextValue === "1") {
+          nextGroupValue.push(value);
+        } else if (nextValue === "0.5") {
+          nextGroupValue.push(`${value}-partial`);
+        } else if (nextValue === "0") {
+          nextGroupValue.push(`${value}-inverse`);
+        }
+        groupState.setValue(nextGroupValue);
+      } else {
+        if (value === undefined) {
+          setUncontrolledValue(nextValue);
+        }
+        onChange?.(nextValue);
+      }
+    }, [isMultiState, currentValue, allowInverse, allowPartial, value, groupState, onChange]);
+
+    const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+      if (!isMultiState) return;
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const nextValue = getNextValue(currentValue, allowInverse, allowPartial);
+
+        if (groupState) {
+          const nextGroupValue = groupState.value.filter(
+            v => v !== value && v !== `${value}-partial` && v !== `${value}-inverse` && v !== "0"
+          );
+          if (nextValue === "1") {
+            nextGroupValue.push(value);
+          } else if (nextValue === "0.5") {
+            nextGroupValue.push(`${value}-partial`);
+          } else if (nextValue === "0") {
+            nextGroupValue.push(`${value}-inverse`);
+          }
+          groupState.setValue(nextGroupValue);
+        } else {
+          if (value === undefined) {
+            setUncontrolledValue(nextValue);
+          }
+          onChange?.(nextValue);
+        }
+      }
+    }, [isMultiState, currentValue, allowInverse, allowPartial, value, groupState, onChange]);
 
     // ARIA properties mapped from multi-state values
     const ariaProps = React.useMemo(() => {
       if (!isMultiState) return {};
       return {
         isSelected: currentValue === "1",
-        isIndeterminate: currentValue === "0.5",
-        onChange: handleAriaChange
+        isIndeterminate: currentValue === "0.5"
       };
-    }, [isMultiState, currentValue, handleAriaChange]);
+    }, [isMultiState, currentValue]);
 
     const resolvedProps = isMultiState 
-      ? { ...props, ...ariaProps }
+      ? { ...props, ...ariaProps, value }
       : { ...props, value, defaultValue, onChange };
 
     return (
@@ -152,45 +214,51 @@ const Checkbox = React.forwardRef<HTMLDivElement, CheckboxProps>(
         )}
         {...resolvedProps}
       >
-        <AriaCheckboxButton className={cn(
-          "inline-flex items-center justify-start whitespace-nowrap text-foreground focus:outline-none transition-colors w-fit", 
-          pure ? "h-fit p-0 min-w-0" : config.button
-        )}>
-          {(values) => (
-            <>
-              <div className={cn(
-                "shrink-0 items-center justify-center rounded-sm border ring-offset-background transition-colors flex",
-                config.box,
-                // Custom styling based on our multi-state value
-                isMultiState 
-                  ? (
-                    currentValue === "" 
-                      ? "border-primary bg-transparent"
-                      : "border-primary bg-primary text-primary-foreground"
-                  )
-                  : "border-primary group-data-[selected]:bg-primary group-data-[selected]:text-primary-foreground group-data-[indeterminate]:bg-primary group-data-[indeterminate]:text-primary-foreground",
-                "group-data-[focus-visible]:outline-none group-data-[focus-visible]:ring-2 group-data-[focus-visible]:ring-ring group-data-[focus-visible]:ring-offset-2"
-              )}>
-                {isMultiState ? (
-                  currentValue === "0.5" ? (
-                    <Minus className={config.icon} />
-                  ) : currentValue === "1" ? (
-                    <Check className={config.icon} />
-                  ) : currentValue === "0" ? (
-                    <X className={config.icon} />
-                  ) : null
-                ) : (
-                  values.isIndeterminate ? (
-                    <Minus className={config.icon} />
-                  ) : values.isSelected ? (
-                    <Check className={config.icon} />
-                  ) : null
-                )}
-              </div>
-              {typeof children === "function" ? children(values) : children}
-            </>
-          )}
-        </AriaCheckboxButton>
+        <div
+          onPointerDownCapture={isMultiState ? handleToggle : undefined}
+          onKeyDownCapture={isMultiState ? handleKeyDown : undefined}
+          className="w-fit h-fit"
+        >
+          <AriaCheckboxButton className={cn(
+            "inline-flex items-center justify-start whitespace-nowrap text-foreground focus:outline-none transition-colors w-fit", 
+            pure ? "h-fit p-0 min-w-0" : config.button
+          )}>
+            {(values) => (
+              <>
+                <div className={cn(
+                  "shrink-0 items-center justify-center rounded-sm border ring-offset-background transition-colors flex",
+                  config.box,
+                  // Custom styling based on our multi-state value
+                  isMultiState 
+                    ? (
+                      currentValue === "" 
+                        ? "border-primary bg-transparent"
+                        : "border-primary bg-primary text-primary-foreground"
+                    )
+                    : "border-primary group-data-[selected]:bg-primary group-data-[selected]:text-primary-foreground group-data-[indeterminate]:bg-primary group-data-[indeterminate]:text-primary-foreground",
+                  "group-data-[focus-visible]:outline-none group-data-[focus-visible]:ring-2 group-data-[focus-visible]:ring-ring group-data-[focus-visible]:ring-offset-2"
+                )}>
+                  {isMultiState ? (
+                    currentValue === "0.5" ? (
+                      <Minus className={config.icon} />
+                    ) : currentValue === "1" ? (
+                      <Check className={config.icon} />
+                    ) : currentValue === "0" ? (
+                      <X className={config.icon} />
+                    ) : null
+                  ) : (
+                    values.isIndeterminate ? (
+                      <Minus className={config.icon} />
+                    ) : values.isSelected ? (
+                      <Check className={config.icon} />
+                    ) : null
+                  )}
+                </div>
+                {typeof children === "function" ? children(values) : children}
+              </>
+            )}
+          </AriaCheckboxButton>
+        </div>
         {description && <p className={cn("text-muted-foreground", config.desc)}>{description}</p>}
       </AriaCheckboxField>
     )

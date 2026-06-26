@@ -240,6 +240,7 @@ function CheckboxPlayground() {
   const [checkboxTab, setCheckboxTab] = useState<"preview" | "code">("preview");
   const [checkboxSize, setCheckboxSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
   const [multiValue, setMultiValue] = useState<any>("");
+  const [groupValue, setGroupValue] = useState<string[]>(["wifi", "breakfast-partial"]);
   const [allowInverse, setAllowInverse] = useState(true);
   const [allowPartial, setAllowPartial] = useState(true);
   const [copiedText, setCopiedText] = useState<string | null>(null);
@@ -263,6 +264,7 @@ import { useState } from 'react'
 
 export default function Demo() {
   const [value, setValue] = useState("") // ${getSupportedStatesText()}
+  const [groupValue, setGroupValue] = useState<string[]>(["wifi", "breakfast-partial"]) // Selected/partial/inversed options
 
   return (
     <div className="space-y-6">
@@ -272,7 +274,7 @@ export default function Demo() {
         <Checkbox value="parking" description="Includes overnight parking"${checkboxSize !== "default" ? ` size="${checkboxSize}"` : ""}>Parking Space</Checkbox>
       </CheckboxGroup>
 
-      {/* Multi-State Checkbox */}
+      {/* Multi-State Checkbox (Single Toggle) */}
       <Checkbox
         allowInverse={${allowInverse}}
         allowPartial={${allowPartial}}
@@ -283,6 +285,28 @@ export default function Demo() {
       >
         Interactive Multi-State Checkbox
       </Checkbox>
+
+      {/* Multi-Option CheckboxGroup */}
+      <CheckboxGroup label="Hotel Booking Add-ons" value={groupValue} onChange={setGroupValue}>
+        <Checkbox
+          allowInverse={${allowInverse}}
+          allowPartial={${allowPartial}}
+          value="wifi"
+          description="High-speed wireless internet"
+          ${checkboxSize !== "default" ? `size="${checkboxSize}"` : ""}
+        >
+          Wi-Fi Access
+        </Checkbox>
+        <Checkbox
+          allowInverse={${allowInverse}}
+          allowPartial={${allowPartial}}
+          value="breakfast"
+          description="Buffet breakfast service"
+          ${checkboxSize !== "default" ? `size="${checkboxSize}"` : ""}
+        >
+          Breakfast Included
+        </Checkbox>
+      </CheckboxGroup>
     </div>
   )
 }`;
@@ -309,7 +333,7 @@ export default function Demo() {
             </CheckboxGroup>
 
             <div className="pt-6 border-t border-border space-y-4">
-              <h4 className="text-sm font-bold tracking-tight text-foreground">Multi-State Checkbox</h4>
+              <h4 className="text-sm font-bold tracking-tight text-foreground">Multi-State Checkbox (Single Toggle)</h4>
               <Checkbox
                 allowInverse={allowInverse}
                 allowPartial={allowPartial}
@@ -320,6 +344,34 @@ export default function Demo() {
               >
                 Interactive Multi-State Checkbox
               </Checkbox>
+            </div>
+
+            <div className="pt-6 border-t border-border space-y-4">
+              <h4 className="text-sm font-bold tracking-tight text-foreground">Multi-Option CheckboxGroup (Capturing onChange)</h4>
+              <CheckboxGroup value={groupValue} onChange={setGroupValue}>
+                <Checkbox
+                  allowInverse={allowInverse}
+                  allowPartial={allowPartial}
+                  value="wifi"
+                  size={checkboxSize}
+                  description="High-speed wireless internet"
+                >
+                  Wi-Fi Access
+                </Checkbox>
+                <Checkbox
+                  allowInverse={allowInverse}
+                  allowPartial={allowPartial}
+                  value="breakfast"
+                  size={checkboxSize}
+                  description="Buffet breakfast service"
+                >
+                  Breakfast Included
+                </Checkbox>
+              </CheckboxGroup>
+              <div className="text-xs text-muted-foreground font-semibold bg-muted/30 p-3 rounded-lg border border-border/40">
+                <span className="font-bold text-foreground">Group onChange Value:</span>{" "}
+                <code className="text-primary font-bold">[{groupValue.map(v => `"${v}"`).join(", ")}]</code>
+              </div>
             </div>
 
             <div className="pt-6 border-t border-border space-y-4">
@@ -648,6 +700,9 @@ export default function Demo() {
 function RadioPlayground() {
   const [radioTab, setRadioTab] = useState<"preview" | "code">("preview");
   const [radioSize, setRadioSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
+  const [multiRadio, setMultiRadio] = useState<any>("");
+  const [groupValue, setGroupValue] = useState<string>("");
+  const [allowInverse, setAllowInverse] = useState(true);
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, id: string) => {
@@ -657,15 +712,57 @@ function RadioPlayground() {
     message.success("Component source code copied to clipboard.");
   };
 
+  const getSupportedStatesText = () => {
+    return allowInverse ? `"" | "1" | "0"` : `"" | "1"`;
+  };
+
   const radioCode = `import { Radio, RadioGroup } from 'inc-ui'
+import { useState } from 'react'
 
 export default function Demo() {
+  const [value, setValue] = useState("") // ${getSupportedStatesText()}
+  const [groupValue, setGroupValue] = useState("") // Selected/inversed option
+
   return (
-    <RadioGroup label="Notification Preference" defaultValue="email">
-      <Radio value="email" description="Receive updates via email"${radioSize !== "default" ? ` size="${radioSize}"` : ""}>Email</Radio>
-      <Radio value="sms" description="Receive updates via SMS"${radioSize !== "default" ? ` size="${radioSize}"` : ""}>SMS</Radio>
-      <Radio value="push" isDisabled${radioSize !== "default" ? ` size="${radioSize}"` : ""}>Push Notification (Not Supported)</Radio>
-    </RadioGroup>
+    <div className="space-y-6">
+      {/* Standard Group */}
+      <RadioGroup label="Notification Preference" defaultValue="email">
+        <Radio value="email" description="Receive updates via email"${radioSize !== "default" ? ` size="${radioSize}"` : ""}>Email</Radio>
+        <Radio value="sms" description="Receive updates via SMS"${radioSize !== "default" ? ` size="${radioSize}"` : ""}>SMS</Radio>
+      </RadioGroup>
+
+      {/* Multi-State Radio (Single Toggle) */}
+      <RadioGroup value={value} onChange={setValue}>
+        <Radio
+          allowInverse={${allowInverse}}
+          value="1"
+          description={\`Current Value: "\${value}"\`}
+          ${radioSize !== "default" ? `size="${radioSize}"` : ""}
+        >
+          Interactive Multi-State Radio
+        </Radio>
+      </RadioGroup>
+
+      {/* Multi-Option RadioGroup */}
+      <RadioGroup label="Premium Features" value={groupValue} onChange={setGroupValue}>
+        <Radio
+          allowInverse={true}
+          value="speed"
+          description={groupValue === "speed" ? "Speed Boost (Selected)" : groupValue === "speed-inverse" ? "Speed Boost (Inversed/No)" : "Speed Boost (Neutral)"}
+          ${radioSize !== "default" ? `size="${radioSize}"` : ""}
+        >
+          Speed Boost
+        </Radio>
+        <Radio
+          allowInverse={true}
+          value="security"
+          description={groupValue === "security" ? "Security Lock (Selected)" : groupValue === "security-inverse" ? "Security Lock (Inversed/No)" : "Security Lock (Neutral)"}
+          ${radioSize !== "default" ? `size="${radioSize}"` : ""}
+        >
+          Security Lock
+        </Radio>
+      </RadioGroup>
+    </div>
   )
 }`;
 
@@ -683,12 +780,52 @@ export default function Demo() {
         </div>
 
         {radioTab === "preview" ? (
-          <div className="w-full max-w-sm space-y-4 pt-8">
+          <div className="w-full max-w-sm space-y-6 pt-8">
             <RadioGroup label="Notification Preference" defaultValue="email">
               <Radio value="email" description="Receive updates via email" size={radioSize}>Email</Radio>
               <Radio value="sms" description="Receive updates via SMS" size={radioSize}>SMS</Radio>
               <Radio value="push" isDisabled size={radioSize}>Push Notification (Not Supported)</Radio>
             </RadioGroup>
+
+            <div className="pt-6 border-t border-border space-y-4">
+              <h4 className="text-sm font-bold tracking-tight text-foreground">Multi-State Radio (Single Toggle)</h4>
+              <RadioGroup value={multiRadio} onChange={setMultiRadio}>
+                <Radio
+                  allowInverse={allowInverse}
+                  value="1"
+                  size={radioSize}
+                  description={multiRadio === "" ? 'Status: Neutral (value: "")' : multiRadio === "1" ? 'Status: Selected (value: "1")' : 'Status: Inverse (value: "0")'}
+                >
+                  Interactive Multi-State Radio
+                </Radio>
+              </RadioGroup>
+            </div>
+
+            <div className="pt-6 border-t border-border space-y-4">
+              <h4 className="text-sm font-bold tracking-tight text-foreground">Multi-Option RadioGroup (Capturing onChange)</h4>
+              <RadioGroup label="Premium Features" value={groupValue} onChange={setGroupValue}>
+                <Radio
+                  allowInverse={true}
+                  value="speed"
+                  size={radioSize}
+                  description={groupValue === "speed" ? "Status: Selected" : groupValue === "speed-inverse" ? "Status: Inversed (No)" : "Status: Neutral"}
+                >
+                  Speed Boost
+                </Radio>
+                <Radio
+                  allowInverse={true}
+                  value="security"
+                  size={radioSize}
+                  description={groupValue === "security" ? "Status: Selected" : groupValue === "security-inverse" ? "Status: Inversed (No)" : "Status: Neutral"}
+                >
+                  Security Lock
+                </Radio>
+              </RadioGroup>
+              <div className="text-xs text-muted-foreground font-semibold bg-muted/30 p-3 rounded-lg border border-border/40">
+                <span className="font-bold text-foreground">Group onChange Value:</span>{" "}
+                <code className="text-primary font-bold">"{groupValue}"</code>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="w-full relative pt-8">
@@ -726,6 +863,31 @@ export default function Demo() {
                   {s}
                 </Button>
               ))}
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Multi-State Settings</label>
+            <div className="flex flex-col gap-3 mt-2">
+              <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allowInverse}
+                  onChange={(e) => {
+                    setAllowInverse(e.target.checked);
+                    setMultiRadio((prev: any) => {
+                      if (!e.target.checked && prev === "0") return "";
+                      return prev;
+                    });
+                  }}
+                  className="rounded border-input text-primary focus:ring-ring h-4 w-4"
+                />
+                <span>Allow Inverse (0) State</span>
+              </label>
+              <div className="text-xs text-muted-foreground">
+                <span className="font-semibold">Supported States:</span>{" "}
+                {getSupportedStatesText()}
+              </div>
             </div>
           </div>
 

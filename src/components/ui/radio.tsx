@@ -5,8 +5,10 @@ import {
   RadioGroup as AriaRadioGroup,
   type RadioFieldProps as AriaRadioFieldProps,
   type RadioGroupProps as AriaRadioGroupProps,
-  Label
+  Label,
+  RadioGroupStateContext
 } from "react-aria-components"
+import { X } from "lucide-react"
 import { cn } from "../../lib/utils"
 
 const RadioGroup = React.forwardRef<HTMLDivElement, AriaRadioGroupProps & { label?: string; orientation?: "vertical" | "horizontal" }>(
@@ -49,40 +51,185 @@ const radioSizeConfig = {
 
 export type RadioSize = keyof typeof radioSizeConfig;
 
-export interface RadioProps extends AriaRadioFieldProps {
+export type RadioValue = "" | "0" | "1";
+
+export interface RadioProps extends Omit<AriaRadioFieldProps, 'value' | 'onChange'> {
+  value?: any;
+  defaultValue?: any;
+  onChange?: (value: any) => void;
+  allowInverse?: boolean;
+  pure?: boolean;
   description?: React.ReactNode;
   size?: RadioSize;
   children?: React.ReactNode | ((values: any) => React.ReactNode);
 }
 
+const getNextValue = (current: RadioValue, allowInverse: boolean): RadioValue => {
+  if (allowInverse) {
+    switch (current) {
+      case "": return "1";
+      case "1": return "0";
+      case "0": return "";
+      default: return "1";
+    }
+  } else {
+    switch (current) {
+      case "": return "1";
+      case "1": return "";
+      default: return "1";
+    }
+  }
+};
+
 const Radio = React.forwardRef<HTMLDivElement, RadioProps>(
-  ({ className, children, description, size = "default", ...props }, ref) => {
+  ({ className, children, description, size = "default", value, defaultValue, onChange, allowInverse = false, pure = false, ...props }, ref) => {
     const config = radioSizeConfig[size] || radioSizeConfig.default;
+    const groupState = React.useContext(RadioGroupStateContext);
+
+    // Check if we are in multi-state mode (either allowInverse is true, or value/defaultValue matches RadioValue)
+    const isMultiState = React.useMemo(() => {
+      const isValueMulti = (val: any) => val === "" || val === "0" || val === "1";
+      return allowInverse || isValueMulti(value) || isValueMulti(defaultValue);
+    }, [allowInverse, value, defaultValue]);
+
+    // Uncontrolled state for multi-state mode
+    const [uncontrolledValue, setUncontrolledValue] = React.useState<RadioValue>(() => {
+      const initial = defaultValue !== undefined ? defaultValue : "";
+      return (initial === "" || initial === "0" || initial === "1") ? initial : "";
+    });
+
+    const currentValue = React.useMemo<RadioValue>(() => {
+      if (!isMultiState) return "";
+      if (groupState) {
+        if (groupState.selectedValue === value) return "1";
+        if (groupState.selectedValue === "0" || groupState.selectedValue === `${value}-inverse`) return "0";
+        return "";
+      }
+      const val = value !== undefined ? value : uncontrolledValue;
+      return (val === "" || val === "0" || val === "1") ? val : "";
+    }, [isMultiState, value, uncontrolledValue, groupState?.selectedValue]);
+
+    const handleToggle = React.useCallback((e: React.PointerEvent | React.MouseEvent) => {
+      if (!isMultiState) return;
+      if ('button' in e && e.button !== 0) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Manually focus the radio button for keyboard accessibility
+      const buttonEl = (e.currentTarget as HTMLElement).querySelector('[role="radio"]');
+      if (buttonEl instanceof HTMLElement) {
+        buttonEl.focus();
+      }
+
+      const nextValue = getNextValue(currentValue, allowInverse);
+
+      if (groupState) {
+        if (nextValue === "1") {
+          groupState.setSelectedValue(value);
+        } else if (nextValue === "0") {
+          if (value === "1") {
+            groupState.setSelectedValue("0");
+          } else {
+            groupState.setSelectedValue(`${value}-inverse`);
+          }
+        } else {
+          groupState.setSelectedValue("");
+        }
+      } else {
+        if (value === undefined) {
+          setUncontrolledValue(nextValue);
+        }
+        onChange?.(nextValue);
+      }
+    }, [isMultiState, currentValue, allowInverse, value, groupState, onChange]);
+
+    const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+      if (!isMultiState) return;
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const nextValue = getNextValue(currentValue, allowInverse);
+
+        if (groupState) {
+          if (nextValue === "1") {
+            groupState.setSelectedValue(value);
+          } else if (nextValue === "0") {
+            if (value === "1") {
+              groupState.setSelectedValue("0");
+            } else {
+              groupState.setSelectedValue(`${value}-inverse`);
+            }
+          } else {
+            groupState.setSelectedValue("");
+          }
+        } else {
+          if (value === undefined) {
+            setUncontrolledValue(nextValue);
+          }
+          onChange?.(nextValue);
+        }
+      }
+    }, [isMultiState, currentValue, allowInverse, value, groupState, onChange]);
+
+    // ARIA properties mapped from multi-state values
+    const ariaProps = React.useMemo(() => {
+      if (!isMultiState) return {};
+      return {
+        isSelected: currentValue === "1"
+      };
+    }, [isMultiState, currentValue]);
+
+    const resolvedProps = isMultiState 
+      ? { ...props, ...ariaProps, value }
+      : { ...props, value, defaultValue, onChange };
 
     return (
       <AriaRadioField
         ref={ref}
         className={cn(
           "group flex flex-col gap-1 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 transition-opacity",
+          pure ? "w-fit h-fit" : "",
           className
         )}
-        {...props}
+        {...resolvedProps}
       >
-        <AriaRadioButton className={cn(
-          "inline-flex items-center justify-start whitespace-nowrap text-foreground focus:outline-none transition-colors w-fit", 
-          config.button
-        )}>
-          {(values) => (
-            <>
-              <div className={cn("shrink-0 items-center justify-center rounded-full border border-primary text-primary ring-offset-background group-data-[focus-visible]:outline-none group-data-[focus-visible]:ring-2 group-data-[focus-visible]:ring-ring group-data-[focus-visible]:ring-offset-2 flex", config.box)}>
-                {values.isSelected && (
-                  <div className={cn("rounded-full bg-primary", config.icon)} />
-                )}
-              </div>
-              {typeof children === "function" ? children(values) : children}
-            </>
-          )}
-        </AriaRadioButton>
+        <div
+          onPointerDownCapture={isMultiState ? handleToggle : undefined}
+          onKeyDownCapture={isMultiState ? handleKeyDown : undefined}
+          className="w-fit h-fit"
+        >
+          <AriaRadioButton 
+            className={cn(
+              "inline-flex items-center justify-start whitespace-nowrap text-foreground focus:outline-none transition-colors w-fit", 
+              pure ? "h-fit p-0 min-w-0" : config.button
+            )}
+          >
+            {(values) => (
+              <>
+                <div className={cn(
+                  "shrink-0 items-center justify-center rounded-full border border-primary text-primary ring-offset-background transition-colors flex",
+                  config.box,
+                  "group-data-[focus-visible]:outline-none group-data-[focus-visible]:ring-2 group-data-[focus-visible]:ring-ring group-data-[focus-visible]:ring-offset-2"
+                )}>
+                  {isMultiState ? (
+                    currentValue === "1" ? (
+                      <div className={cn("rounded-full bg-primary", config.icon)} />
+                    ) : currentValue === "0" ? (
+                      <X className={config.icon} />
+                    ) : null
+                  ) : (
+                    values.isSelected && (
+                      <div className={cn("rounded-full bg-primary", config.icon)} />
+                    )
+                  )}
+                </div>
+                {typeof children === "function" ? children(values) : children}
+              </>
+            )}
+          </AriaRadioButton>
+        </div>
         {description && <p className={cn("text-muted-foreground", config.desc)}>{description}</p>}
       </AriaRadioField>
     )
