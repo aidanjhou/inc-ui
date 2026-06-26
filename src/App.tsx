@@ -58,6 +58,7 @@ import { Checkbox, CheckboxGroup } from "./components/ui/checkbox";
 import { Tree } from "./components/ui/tree";
 import { Radio, RadioGroup } from "./components/ui/radio";
 import { Switch } from "./components/ui/switch";
+import { Toggler } from "./components/ui/toggler";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -1009,6 +1010,229 @@ export default function Demo() {
   );
 }
 
+function TogglerPlayground() {
+  const [togglerTab, setTogglerTab] = useState<"preview" | "code">("preview");
+  const [togglerSize, setTogglerSize] = useState<"xs" | "sm" | "default" | "lg" | "xl" | "xxl">("default");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [collapsedDir, setCollapsedDir] = useState<"up" | "down" | "left" | "right">("right");
+  const [expandedDir, setExpandedDir] = useState<"up" | "down" | "left" | "right">("down");
+  const [pure, setPure] = useState(false);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2000);
+    message.success("Component source code copied to clipboard.");
+  };
+
+  const togglerCode = `import { Toggler } from 'inc-ui'
+import { useState } from 'react'
+
+export default function Demo() {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="space-y-6">
+      {/* 1. Tree Style (Right -> Down) */}
+      <div className="flex items-center gap-2">
+        <Toggler 
+          collapsedDirection="right" 
+          expandedDirection="down"
+          ${togglerSize !== "default" ? `size="${togglerSize}"` : ""}${pure ? "\n          pure" : ""}
+        />
+        <span className="text-sm">Tree disclosure (Right to Down)</span>
+      </div>
+
+      {/* 2. Accordion Style (Down -> Up) */}
+      <div className="flex items-center gap-2">
+        <Toggler 
+          collapsedDirection="down" 
+          expandedDirection="up"
+          ${togglerSize !== "default" ? `size="${togglerSize}"` : ""}${pure ? "\n          pure" : ""}
+        />
+        <span className="text-sm">Accordion disclosure (Down to Up)</span>
+      </div>
+
+      {/* 3. Custom Directions (Controlled) */}
+      <div className="flex items-center gap-2">
+        <Toggler
+          isExpanded={expanded}
+          onExpandChange={setExpanded}
+          collapsedDirection="${collapsedDir}"
+          expandedDirection="${expandedDir}"
+          ${togglerSize !== "default" ? `size="${togglerSize}"` : ""}${pure ? "\n          pure" : ""}
+        />
+        <span className="text-sm">
+          Custom: ${collapsedDir} -> ${expandedDir} ({expanded ? "Expanded" : "Collapsed"})
+        </span>
+      </div>
+    </div>
+  )
+}`;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Preview */}
+      <div className="lg:col-span-7 border border-border bg-card/40 rounded-2xl p-6 sm:p-10 shadow-inner flex flex-col justify-center items-center relative min-h-[380px]">
+        <div className="absolute top-3 right-3 flex space-x-1 bg-muted/50 p-1 rounded-md">
+          <Button size="sm" variant={togglerTab === "preview" ? "secondary" : "ghost"} onClick={() => setTogglerTab("preview")}>
+            <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
+          </Button>
+          <Button size="sm" variant={togglerTab === "code" ? "secondary" : "ghost"} onClick={() => setTogglerTab("code")}>
+            <Code className="mr-1.5 h-3.5 w-3.5" /> Code
+          </Button>
+        </div>
+
+        {togglerTab === "preview" ? (
+          <div className="w-full max-w-sm space-y-6 pt-8">
+            <div className="flex flex-col gap-5">
+              <div className="space-y-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Tree Style (Right → Down)</h4>
+                <div className="flex items-center gap-2 bg-muted/20 p-3 rounded-lg border border-border/40">
+                  <Toggler collapsedDirection="right" expandedDirection="down" size={togglerSize} pure={pure} />
+                  <span className="text-sm font-medium text-foreground select-none">Uncontrolled Toggler</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Accordion Style (Down → Up)</h4>
+                <div className="flex items-center gap-2 bg-muted/20 p-3 rounded-lg border border-border/40">
+                  <Toggler collapsedDirection="down" expandedDirection="up" size={togglerSize} pure={pure} />
+                  <span className="text-sm font-medium text-foreground select-none">Uncontrolled Toggler</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border space-y-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Interactive Custom Directions</h4>
+                <div className="flex items-center gap-4 bg-muted/25 p-3.5 rounded-xl border border-primary/25 shadow-inner">
+                  <Toggler
+                    isExpanded={isExpanded}
+                    onExpandChange={setIsExpanded}
+                    collapsedDirection={collapsedDir}
+                    expandedDirection={expandedDir}
+                    size={togglerSize}
+                    pure={pure}
+                  />
+                  <div className="text-sm font-medium text-foreground select-none flex-1">
+                    <div>State: <span className="text-primary font-bold">{isExpanded ? "Expanded" : "Collapsed"}</span></div>
+                    <div className="text-[11px] text-muted-foreground mt-1 flex flex-wrap gap-x-2">
+                      <span>Collapsed: <code className="text-primary font-semibold">"{collapsedDir}"</code></span>
+                      <span>Expanded: <code className="text-primary font-semibold">"{expandedDir}"</code></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full relative pt-8">
+            <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto border border-slate-800 font-mono">
+              <code>{togglerCode}</code>
+            </pre>
+            <Button
+              icon
+              variant="ghost"
+              className="absolute top-2 right-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+              onClick={() => copyToClipboard(togglerCode, "toggler")}
+            >
+              {copiedText === "toggler" ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="lg:col-span-5 border border-border bg-card rounded-2xl p-6 flex flex-col space-y-6 shadow-sm">
+        <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Playground Settings</h3>
+
+        <div className="space-y-6">
+          {/* Size Control */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Size</label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {["xs", "sm", "default", "lg", "xl", "xxl"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={togglerSize === s ? "primary" : "secondary"}
+                  onClick={() => setTogglerSize(s as any)}
+                  className="text-xs px-0"
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Collapsed Direction Control */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Collapsed Direction</label>
+            <div className="grid grid-cols-4 gap-1.5 mt-2">
+              {(["up", "down", "left", "right"] as const).map((dir) => (
+                <Button
+                  key={dir}
+                  size="sm"
+                  variant={collapsedDir === dir ? "primary" : "secondary"}
+                  onClick={() => setCollapsedDir(dir)}
+                  className="text-xs px-0"
+                >
+                  {dir}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Expanded Direction Control */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Expanded Direction</label>
+            <div className="grid grid-cols-4 gap-1.5 mt-2">
+              {(["up", "down", "left", "right"] as const).map((dir) => (
+                <Button
+                  key={dir}
+                  size="sm"
+                  variant={expandedDir === dir ? "primary" : "secondary"}
+                  onClick={() => setExpandedDir(dir)}
+                  className="text-xs px-0"
+                >
+                  {dir}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Pure Modifiers */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Modifiers</label>
+            <div className="flex flex-col gap-3 mt-2">
+              <label className="flex items-center space-x-2 text-sm font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={pure}
+                  onChange={(e) => setPure(e.target.checked)}
+                  className="rounded border-input text-primary focus:ring-ring h-4 w-4"
+                />
+                <span>Pure Mode (Stripped Bounds)</span>
+              </label>
+            </div>
+          </div>
+
+          {/* API Reference */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">API Reference</h3>
+            <div className="space-y-4 pt-2">
+              <div>
+                <code className="text-[11px] font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-primary">&lt;Toggler collapsedDirection expandedDirection size pure /&gt;</code>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">Rotating chevron disclosure button with customizable directions.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const { theme, setTheme, platform, setPlatform, language, setLanguage } = useUIConfig();
   const [buttonTab, setButtonTab] = useState<"preview" | "code">("preview");
@@ -1876,6 +2100,18 @@ export default function CountrySelector() {
           </div>
 
           <SwitchPlayground />
+        </section>
+
+        <hr className="border-border" />
+
+        {/* TOGGLER SECTION */}
+        <section id="toggler" className="space-y-6">
+          <div className="space-y-1">
+            <h2 className="text-3xl font-bold tracking-tight">Toggler</h2>
+            <p className="text-muted-foreground">A small, rotating chevron button specifically designed to trigger disclosures, accordion cards, and tree node expand/collapse states.</p>
+          </div>
+
+          <TogglerPlayground />
         </section>
 
         <hr className="border-border" />

@@ -1,6 +1,6 @@
 import * as React from "react"
-import { ChevronRight } from "lucide-react"
 import { Checkbox } from "./checkbox"
+import { Toggler } from "./toggler"
 import { cn } from "../../lib/utils"
 
 export interface TreeNode {
@@ -244,26 +244,14 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
             <div className="flex items-center gap-2 flex-1 min-w-0">
               {/* Expand Arrow or Placeholder */}
               {!nodeLeaf ? (
-                <button
-                  type="button"
-                  className={cn(
-                    "rounded-md hover:bg-muted-foreground/10 text-muted-foreground transition-colors focus:outline-none flex items-center justify-center shrink-0",
-                    config.arrowPlaceholder,
-                    config.arrowBtn
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation(); // Avoid double toggle from row click
-                    toggleExpand(node.id);
-                  }}
-                >
-                  <ChevronRight
-                    className={cn(
-                      "transition-transform duration-200 shrink-0",
-                      config.arrow,
-                      expanded && "rotate-90"
-                    )}
-                  />
-                </button>
+                <Toggler
+                  pure
+                  isExpanded={expanded}
+                  onExpandChange={() => toggleExpand(node.id)}
+                  size={size}
+                  className={cn("shrink-0", config.arrowPlaceholder)}
+                  onClick={(e) => e.stopPropagation()} // Avoid double toggle from row click
+                />
               ) : (
                 <div className={cn("shrink-0", config.arrowPlaceholder)} /> // Indent leaf nodes to align with parents
               )}

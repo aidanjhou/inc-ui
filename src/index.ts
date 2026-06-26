@@ -135,3 +135,8 @@ export type { TreeProps, TreeNode } from "./components/ui/tree";
 // Export Radio components
 export { Radio, RadioGroup } from "./components/ui/radio";
 export type { RadioProps } from "./components/ui/radio";
+
+// Export Toggler component
+export { Toggler } from "./components/ui/toggler";
+export type { TogglerProps, TogglerSize, TogglerDirection } from "./components/ui/toggler";
+
