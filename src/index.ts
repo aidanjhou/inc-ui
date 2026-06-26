@@ -128,6 +128,10 @@ export type { CascaderSelectProps, CascaderOption } from "./components/ui/cascad
 export { Checkbox, CheckboxGroup } from "./components/ui/checkbox";
 export type { CheckboxProps } from "./components/ui/checkbox";
 
+// Export Tree components
+export { Tree } from "./components/ui/tree";
+export type { TreeProps, TreeNode } from "./components/ui/tree";
+
 // Export Radio components
 export { Radio, RadioGroup } from "./components/ui/radio";
 export type { RadioProps } from "./components/ui/radio";
